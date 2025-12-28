@@ -1,0 +1,2703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clinical Dashboard • Fixed & Enhanced</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --bg-gradient: linear-gradient(135deg, #e0f9ff 0%, #c7f9ff 30%, #f0e7ff 100%);
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-secondary: #334155;
+      --border: #cbd5e1;
+      --primary: #3b82f6;
+      --primary-light: #60a5fa;
+      --primary-dark: #1e40af;
+      --accent: #8b5cf6;
+      --accent-light: #a78bfa;
+      --success: #06d6a0;
+      --warning: #ff8c00;
+      --danger: #dc2626;
+      --shadow: 0 8px 32px rgba(59, 130, 246, 0.25);
+      --shadow-hover: 0 12px 48px rgba(139, 92, 246, 0.35);
+      --radius: 16px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --bg-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #581c87 100%);
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-secondary: #e2e8f0;
+      --border: #475569;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      --shadow-hover: 0 12px 48px rgba(139, 92, 246, 0.5);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    /* Screen reader only content */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+    
+    /* Focus indicators */
+    button:focus, [tabindex="0"]:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+    
+    /* Touch targets - Minimum 44x44px for tablets used in hospitals */
+    input[type="range"] {
+      min-height: 44px;
+      cursor: pointer;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .preset-btn {
+      min-height: 44px;
+      padding: 0.75rem 1rem;
+    }
+    
+    .card-header {
+      min-height: 60px;
+      padding: 1.25rem;
+    }
+    
+    .info-box-title {
+      min-height: 44px;
+      align-items: center;
+      display: flex;
+    }
+    
+    /* Touch-friendly improvements */
+    @media (hover: none) and (pointer: coarse) {
+      .btn {
+        padding: 1rem;
+        font-size: 1rem;
+      }
+      
+      .preset-btn {
+        padding: 1rem 1.25rem;
+        font-size: 0.9rem;
+      }
+      
+      .card-header {
+        padding: 1.5rem;
+      }
+      
+      input[type="range"] {
+        height: 8px;
+      }
+      
+      input[type="range"]::-webkit-slider-thumb {
+        width: 48px;
+        height: 48px;
+      }
+      
+      input[type="range"]::-moz-range-thumb {
+        width: 48px;
+        height: 48px;
+      }
+    }
+    
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+      :root {
+        --primary: #0000ff;
+        --accent: #ff00ff;
+        --border: #000000;
+      }
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      padding: 0.75rem;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+      background-attachment: fixed;
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      padding: 0.75rem;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--primary-dark), var(--accent), var(--primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      max-width: 800px;
+      margin: 0 auto 1rem;
+      font-size: 1rem;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--card-bg);
+      border: 2px solid var(--primary-light);
+      width: 60px;
+      height: 44px; /* Minimum touch target */
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: var(--shadow);
+      min-height: 44px;
+      background: linear-gradient(135deg, var(--card-bg), rgba(59, 130, 246, 0.1));
+    }
+    
+    .theme-toggle:hover {
+      border-color: var(--primary);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .toggle-handle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-light));
+      transition: transform 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: white;
+      min-width: 28px;
+      min-height: 28px;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    body[data-theme="dark"] .toggle-handle {
+      transform: translateX(24px);
+      background: linear-gradient(135deg, var(--accent), var(--accent-light), var(--primary));
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+      transition: box-shadow 0.3s, transform 0.3s;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+      z-index: -1;
+      margin: -2px;
+      border-radius: inherit;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+      border-color: var(--primary-light);
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: linear-gradient(90deg, var(--primary-dark), var(--accent), var(--primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: flex;
+      align-items: center;
+      text-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+    }
+
+    .card-title i {
+      margin-right: 0.75rem;
+      background: linear-gradient(135deg, var(--primary-dark), var(--accent), var(--primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+    }
+
+    .grid {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 768px) {
+      .grid-5 { grid-template-columns: repeat(5, 1fr); }
+      .grid-8 { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (min-width: 1024px) {
+      .grid-8 { grid-template-columns: repeat(8, 1fr); }
+    }
+
+    .abg-section {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
+      border-radius: var(--radius);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .input-group { display: flex; flex-direction: column; }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: var(--accent);
+      text-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+    }
+
+    .range-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .range-value {
+      font-weight: 600;
+      min-width: 3rem;
+      text-align: right;
+      color: var(--primary-dark);
+      text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      background: linear-gradient(90deg, var(--border), var(--primary-light));
+      border-radius: 9999px;
+      outline: none;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-light));
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--card-bg);
+      color: var(--text);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s;
+      min-height: 44px; /* Minimum touch target size */
+      min-width: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn:hover { 
+      background: linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(168, 85, 247, 0.1));
+      border-color: var(--primary-light);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+      transform: translateY(-1px);
+    }
+    .btn.active {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-light));
+      color: white;
+      border-color: var(--primary-light);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .alert {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      position: relative;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .alert.severity-normal {
+      border: 2px solid var(--success);
+      background: linear-gradient(135deg, rgba(6, 214, 160, 0.2), rgba(16, 185, 129, 0.1));
+      color: #065f46;
+      box-shadow: 0 4px 12px rgba(6, 214, 160, 0.3);
+    }
+    
+    .alert.severity-mild {
+      border: 2px solid #eab308;
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(245, 158, 11, 0.1));
+      color: #92400e;
+      box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+    }
+    
+    .alert.severity-moderate {
+      border: 2px solid var(--warning);
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(255, 140, 0, 0.1));
+      color: #9a3412;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+    
+    .alert.severity-severe {
+      border: 2px solid var(--danger);
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(239, 68, 68, 0.1));
+      color: #991b1b;
+      animation: alert-pulse 1.5s infinite;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+    
+    @keyframes alert-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .alert::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      right: -4px;
+      bottom: -4px;
+      border-radius: 9999px;
+      z-index: -1;
+    }
+    
+    .alert.severity-severe::before {
+      background: rgba(239, 68, 68, 0.2);
+      animation: alert-glow 2s infinite;
+    }
+    
+    @keyframes alert-glow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.8; }
+    }
+
+    .alert-normal { background: #dbeafe; color: #1e40af; }
+    .alert-mild { background: #fef9c3; color: #854d0e; }
+    .alert-moderate { background: #ffedd5; color: #c2410c; }
+    .alert-severe { background: #fee2e2; color: #b91c1c; }
+    [data-theme="dark"] .alert-normal { background: #1e3a8a; color: #93c5fd; }
+    [data-theme="dark"] .alert-mild { background: #78350f; color: #fed7aa; }
+    [data-theme="dark"] .alert-moderate { background: #9a3412; color: #fdba74; }
+    [data-theme="dark"] .alert-severe { background: #991b1b; color: #fecaca; }
+
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
+      border-radius: 16px;
+      padding: 1rem;
+      margin-top: 1rem;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.1);
+    }
+
+    .summary-item {
+      min-width: 120px;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, var(--card-bg), rgba(59, 130, 246, 0.02));
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+    }
+    
+    .summary-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
+      z-index: -1;
+    }
+    
+    .summary-item.severity-normal {
+      border-left: 4px solid var(--success);
+    }
+    
+    .summary-item.severity-mild {
+      border-left: 4px solid #eab308;
+    }
+    
+    .summary-item.severity-moderate {
+      border-left: 4px solid var(--warning);
+    }
+    
+    .summary-item.severity-severe {
+      border-left: 4px solid var(--danger);
+      animation: pulse-severe 2s infinite;
+    }
+    
+    @keyframes pulse-severe {
+      0% { box-shadow: 0 2px 4px rgba(239, 68, 68, 0.05); }
+      50% { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+      100% { box-shadow: 0 2px 4px rgba(239, 68, 68, 0.05); }
+    }
+    
+    .summary-change {
+      position: absolute;
+      top: 0.25rem;
+      right: 0.25rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+    
+    .summary-change.increase {
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(239, 68, 68, 0.1));
+      color: var(--danger);
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    }
+    
+    .summary-change.decrease {
+      background: linear-gradient(135deg, rgba(6, 214, 160, 0.2), rgba(16, 185, 129, 0.1));
+      color: var(--success);
+      box-shadow: 0 2px 8px rgba(6, 214, 160, 0.3);
+    }
+    
+    .summary-change.neutral {
+      background: linear-gradient(135deg, rgba(71, 85, 105, 0.2), rgba(100, 116, 139, 0.1));
+      color: var(--text-secondary);
+      box-shadow: 0 2px 8px rgba(71, 85, 105, 0.2);
+    }
+
+    .summary-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .summary-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      transition: all 0.3s ease;
+      text-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+    }
+    
+    .summary-value.abnormal {
+      color: var(--danger);
+      font-weight: 800;
+    }
+
+    .protocol-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+      border-left: 4px solid var(--primary-dark);
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      position: relative;
+    }
+    
+    .protocol-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+      z-index: -1;
+      margin: -2px;
+      border-radius: inherit;
+    }
+
+    .protocol-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-4px);
+      border-color: var(--primary-light);
+    }
+
+    .risk-border-severe { border-left-color: var(--danger); }
+    .risk-border-moderate { border-left-color: var(--warning); }
+    .risk-border-mild { border-left-color: #eab308; }
+    .risk-border-normal { border-left-color: var(--success); }
+    .risk-border-info { border-left-color: var(--accent); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      background: linear-gradient(135deg, var(--card-bg), rgba(59, 130, 246, 0.05));
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+
+    .card-header:hover { 
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
+      box-shadow: inset 0 4px 8px rgba(59, 130, 246, 0.1);
+    }
+
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--primary-dark);
+      text-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .card-title-row i {
+      margin-right: 0.6rem;
+      font-size: 1.1rem;
+      color: var(--accent);
+      text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+    }
+
+    .expand-icon {
+      transition: transform 0.2s;
+      color: var(--text-secondary);
+      text-shadow: 0 0 5px rgba(71, 85, 105, 0.3);
+    }
+
+    .card-header.active .expand-icon {
+      transform: rotate(180deg);
+    }
+
+    .card-content {
+      padding: 0 1.25rem 1.25rem;
+      background: rgba(96, 165, 250, 0.02);
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+
+    .card-content.expanded {
+      max-height: 2000px;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, var(--card-bg), rgba(59, 130, 246, 0.02));
+      border: 2px solid rgba(59, 130, 246, 0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 0.75rem 0;
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.1);
+    }
+
+    .info-box-title {
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      text-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+    }
+
+    .info-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .info-list li {
+      margin-bottom: 0.4rem;
+      padding-left: 1.25rem;
+      position: relative;
+    }
+
+    .info-list li:before {
+      content: "•";
+      color: var(--accent);
+      position: absolute;
+      left: 0;
+      font-size: 1.2rem;
+      text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+    }
+
+    .critical { 
+      color: var(--accent); 
+      font-weight: 600;
+      text-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+    }
+
+    .presets {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .preset-btn {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15));
+      border: 2px solid rgba(139, 92, 246, 0.4);
+      color: var(--accent);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+      text-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+    }
+
+    .preset-btn:hover {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(59, 130, 246, 0.25));
+      transform: scale(1.05) translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+      border-color: var(--accent-light);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      padding: 1.5rem;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      border-top: 2px solid var(--primary-light);
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.1);
+    }
+    
+    .language-selector {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      z-index: 100;
+    }
+    
+    #lang-btn {
+      background: linear-gradient(135deg, var(--card-bg), rgba(59, 130, 246, 0.1));
+      border: 2px solid var(--primary-light);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+      font-weight: 600;
+    }
+    
+    #lang-btn:hover {
+      border-color: var(--primary);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+      transform: translateY(-1px);
+    }
+    
+    .lang-menu {
+      background: var(--card-bg);
+      border: 2px solid var(--primary-light);
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+      margin-top: 0.5rem;
+      overflow: hidden;
+    }
+    
+    .lang-menu button {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: none;
+      background: var(--card-bg);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: left;
+      font-weight: 500;
+    }
+    
+    .lang-menu button:hover {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+      color: var(--primary-dark);
+    }
+    
+    /* Enhanced slider value animation */
+    .range-value {
+      transition: all 0.3s ease;
+    }
+    
+    .range-value.updating {
+      animation: value-pulse 0.4s ease;
+    }
+    
+    @keyframes value-pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); color: var(--accent); text-shadow: 0 0 15px rgba(139, 92, 246, 0.6); }
+      100% { transform: scale(1); }
+    }
+    /* Enhanced gradient effects and glows */
+    .glow-effect {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.2);
+    }
+    
+    .text-glow {
+      text-shadow: 0 0 10px rgba(59, 130, 246, 0.4), 0 0 20px rgba(139, 92, 246, 0.2);
+    }
+    
+    .enhanced-border {
+      border: 2px solid transparent;
+      background: linear-gradient(var(--card-bg), var(--card-bg)) padding-box,
+                  linear-gradient(45deg, var(--primary), var(--accent)) border-box;
+    }
+    
+    /* Enhanced alert animations */
+    .alert {
+      transition: all 0.3s ease;
+    }
+    
+    .alert.updating {
+      animation: alert-update 0.6s ease;
+    }
+    
+    @keyframes alert-update {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+      100% { transform: scale(1); }
+    }
+    
+    /* Real-time value indicators */
+    .input-group {
+      position: relative;
+    }
+    
+    .input-group::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 8px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+    }
+    
+    .input-group:focus-within::after {
+      opacity: 0.15;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="theme-toggle" id="theme-toggle" role="button" aria-label="Toggle theme" aria-pressed="false" tabindex="0">
+    <div class="toggle-handle">🌙</div>
+  </div>
+
+  <div class="container">
+    <div class="language-selector" id="language-selector">
+      <button id="lang-btn" aria-label="Select language" aria-expanded="false" aria-haspopup="true" tabindex="0">
+        <span id="current-lang">EN</span> <i class="fas fa-chevron-down"></i>
+      </button>
+      <div id="lang-menu" class="lang-menu" role="menu" aria-hidden="true">
+        <button role="menuitem" data-lang="en" tabindex="-1">English</button>
+        <button role="menuitem" data-lang="es" tabindex="-1">Español</button>
+        <button role="menuitem" data-lang="fr" tabindex="-1">Français</button>
+        <button role="menuitem" data-lang="ar" tabindex="-1">العربية</button>
+        <button role="menuitem" data-lang="zh" tabindex="-1">中文</button>
+      </div>
+    </div>
+    <header>
+      <h1><span class="i18n" data-i18n="title">Clinical Dashboard</span> <span style="color:#4f46e5">⚡</span> <span class="i18n" data-i18n="complete">Fixed & Enhanced</span></h1>
+      <p class="subtitle i18n" data-i18n="subtitle">Fully functional clinical decision support with enhanced automation and fixed slider functionality (v2.0).</p>
+      <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 3px solid var(--success);">
+        <strong style="color: var(--success);">🎯 User-Controlled Navigation:</strong><br>
+        <small>• All scrolling and movement is now manual - use mouse wheel or touch to navigate</small><br>
+        <small>• Click preset buttons and sliders to update values</small><br>
+        <small>• Click section headers to expand/collapse content</small><br>
+        <small>• No automatic scrolling or movement - complete user control</small>
+      </div>
+    </header>
+
+    <div class="card">
+      <h2 class="card-title"><i class="fas fa-sliders-h"></i><span class="i18n" data-i18n="clinicalInputs">Clinical Inputs</span></h2>
+      
+      <div class="presets" role="group" aria-label="Clinical presets">
+        <button class="preset-btn" data-preset="siadh" aria-label="Syndrome of Inappropriate Antidiuretic Hormone" tabindex="0">SIADH</button>
+        <button class="preset-btn" data-preset="dka" aria-label="Diabetic Ketoacidosis" tabindex="0">DKA</button>
+        <button class="preset-btn" data-preset="hf" aria-label="Heart Failure" tabindex="0">Heart Failure</button>
+        <button class="preset-btn" data-preset="cirrhosis" aria-label="Cirrhosis" tabindex="0">Cirrhosis</button>
+        <button class="preset-btn" data-preset="hks" aria-label="Hyperkalemia Emergency" tabindex="0">HyperK⁺ Emergency</button>
+        <button class="preset-btn" data-preset="di" aria-label="Diabetes Insipidus" tabindex="0">Diabetes Insipidus</button>
+        <button class="preset-btn" data-preset="hyperca" aria-label="Hypercalcemia" tabindex="0">Hypercalcemia</button>
+        <button class="preset-btn" data-preset="normal" aria-label="Normal values" tabindex="0">Normal</button>
+      </div>
+
+      <div class="grid grid-8" id="inputs">
+        <div class="input-group">
+          <label>Gender</label>
+          <div class="btn-group" role="group" aria-label="Select gender">
+            <button class="btn active" data-gender="male" aria-label="Male" role="radio" aria-checked="true" tabindex="0">♂</button>
+            <button class="btn" data-gender="female" aria-label="Female" role="radio" aria-checked="false" tabindex="0">♀</button>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>Weight</label>
+            <span class="range-value"><span id="weight-val">70</span> kg</span>
+          </div>
+          <input type="range" id="weight" min="30" max="200" value="70" aria-label="Weight in kilograms" aria-valuemin="30" aria-valuemax="200" aria-valuenow="70" tabindex="0">
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>Na⁺</label>
+            <span class="range-value"><span id="na-val">140</span></span>
+          </div>
+          <input type="range" id="na" min="110" max="170" value="140" aria-label="Sodium level" aria-valuemin="110" aria-valuemax="170" aria-valuenow="140" tabindex="0">
+          <div class="range-label">
+            <span id="na-alert" class="alert alert-normal" role="alert" aria-live="polite">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>K⁺</label>
+            <span class="range-value"><span id="k-val">4.0</span></span>
+          </div>
+          <input type="range" id="k" min="10" max="100" value="40">
+          <div class="range-label">
+            <span id="k-alert" class="alert alert-normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>Ca²⁺</label>
+            <span class="range-value"><span id="ca-val">9.0</span></span>
+          </div>
+          <input type="range" id="ca" min="50" max="120" value="90">
+          <div class="range-label">
+            <span id="ca-alert" class="alert alert-normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>Mg²⁺</label>
+            <span class="range-value"><span id="mg-val">2.0</span></span>
+          </div>
+          <input type="range" id="mg" min="10" max="40" value="20">
+          <div class="range-label">
+            <span id="mg-alert" class="alert alert-normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>PO₄³⁻</label>
+            <span class="range-value"><span id="phos-val">3.5</span></span>
+          </div>
+          <input type="range" id="phos" min="10" max="80" value="35">
+          <div class="range-label">
+            <span id="phos-alert" class="alert alert-normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Status</label>
+          <div class="btn-group" role="group" aria-label="Hydration status">
+            <button class="btn" data-hydration="hypo" aria-label="Hypovolemic" role="radio" aria-checked="false" tabindex="0">Hypo</button>
+            <button class="btn active" data-hydration="eu" aria-label="Euvolemic" role="radio" aria-checked="true" tabindex="0">Eu</button>
+            <button class="btn" data-hydration="hyper" aria-label="Hypervolemic" role="radio" aria-checked="false" tabindex="0">Hyper</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="summary-item" id="summary-tbw">
+          <div class="summary-label">TBW</div>
+          <div class="summary-value"><span id="tbw">42.0</span> L</div>
+          <div class="summary-change neutral" id="tbw-change">0</div>
+        </div>
+        <div class="summary-item" id="summary-na-def">
+          <div class="summary-label">Na⁺ Deficit</div>
+          <div class="summary-value"><span id="na-def">0</span> mEq</div>
+          <div class="summary-change neutral" id="na-def-change">0</div>
+        </div>
+        <div class="summary-item" id="summary-k-def">
+          <div class="summary-label">K⁺ Deficit</div>
+          <div class="summary-value"><span id="k-def">0</span> mEq</div>
+          <div class="summary-change neutral" id="k-def-change">0</div>
+        </div>
+        <div class="summary-item" id="summary-ca-def">
+          <div class="summary-label">Ca²⁺ Deficit</div>
+          <div class="summary-value"><span id="ca-def">0</span> mg</div>
+          <div class="summary-change neutral" id="ca-def-change">0</div>
+        </div>
+        <div class="summary-item" id="summary-mg-def">
+          <div class="summary-label">Mg²⁺ Deficit</div>
+          <div class="summary-value"><span id="mg-def">0</span> mg</div>
+          <div class="summary-change neutral" id="mg-def-change">0</div>
+        </div>
+        <div class="summary-item" id="summary-phos-def">
+          <div class="summary-label">PO₄³⁻ Deficit</div>
+          <div class="summary-value"><span id="phos-def">0</span> mmol</div>
+          <div class="summary-change neutral" id="phos-def-change">0</div>
+        </div>
+        <div class="summary-item" id="summary-etiology">
+          <div class="summary-label">Etiology</div>
+          <div class="summary-value" id="etiology">—</div>
+          <div class="summary-change neutral" id="etiology-change">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="cards-container"></div>
+
+    <div id="auto-management" style="display: none;" class="card">
+      <h2 class="card-title"><i class="fas fa-robot"></i><span class="i18n" data-i18n="managementRecommendations">Enhanced Automatic Management Recommendations</span></h2>
+      <div id="management-content"></div>
+      <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid var(--primary);">
+        <strong style="color: var(--primary-dark);">📱 Manual Navigation:</strong><br>
+        <small>• Scroll manually to view different sections</small><br>
+        <small>• Use mouse wheel or touch gestures for up/down movement</small><br>
+        <small>• Click headers to expand/collapse sections</small><br>
+        <small>• All movement is now user-controlled - no automatic scrolling</small>
+      </div>
+    </div>
+
+    <div id="references-section" class="card" style="margin-top: 1rem;">
+      <h2 class="card-title"><i class="fas fa-book"></i><span class="i18n" data-i18n="clinicalReferences">Clinical References</span></h2>
+      <div id="references-content" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+        <h4 style="color: var(--primary-dark); margin-bottom: 0.5rem;">Evidence-Based Medicine Sources:</h4>
+        <ul class="info-list" style="font-size: 0.8rem;">
+          <li>UpToDate - Electrolyte and Acid-Base Disorders (2024)</li>
+          <li>Harrison's Principles of Internal Medicine, 21st Edition</li>
+          <li>NKF KDOQI Guidelines for Clinical Practice</li>
+          <li>Adrogue-Madias Formula for Sodium Correction</li>
+          <li>AHA/ACC Guidelines for Cardiac Care</li>
+          <li>ASN Guidelines for Management of Acute Kidney Injury</li>
+          <li>Endocrine Society Clinical Practice Guidelines</li>
+          <li>Kidney Disease: Improving Global Outcomes (KDIGO) 2023</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="abg-section" class="card" style="margin-top: 1rem;">
+      <h2 class="card-title"><i class="fas fa-lungs"></i><span class="i18n" data-i18n="abgTitle">Arterial Blood Gas & Acid-Base Balance</span></h2>
+      
+      <!-- ABG Input Section -->
+      <div class="grid grid-8" id="abg-inputs">
+        <div class="input-group">
+          <div class="range-label">
+            <label>pH</label>
+            <span class="range-value"><span id="ph-val">7.40</span></span>
+          </div>
+          <input type="range" id="ph" min="690" max="780" value="740">
+          <div class="range-label">
+            <span id="ph-alert" class="alert alert-normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>PaCO₂</label>
+            <span class="range-value"><span id="paco2-val">40</span> mmHg</span>
+          </div>
+          <input type="range" id="paco2" min="20" max="80" value="40">
+          <div class="range-label">
+            <span id="paco2-alert" class="alert alert-normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>HCO₃⁻</label>
+            <span class="range-value"><span id="hco3-val">24</span> mEq/L</span>
+          </div>
+          <input type="range" id="hco3" min="10" max="40" value="24">
+          <div class="range-label">
+            <span id="hco3-alert" class="alert alert-normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>PaO₂</label>
+            <span class="range-value"><span id="pao2-val">95</span> mmHg</span>
+          </div>
+          <input type="range" id="pao2" min="40" max="150" value="95">
+          <div class="range-label">
+            <span id="pao2-alert" class="alert alert-normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>SaO₂</label>
+            <span class="range-value"><span id="sao2-val">98</span>%</span>
+          </div>
+          <input type="range" id="sao2" min="70" max="100" value="98">
+          <div class="range-label">
+            <span id="sao2-alert" class="alert alert-normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>Base Excess</label>
+            <span class="range-value"><span id="be-val">0</span> mEq/L</span>
+          </div>
+          <input type="range" id="be" min="-10" max="10" value="0">
+          <div class="range-label">
+            <span id="be-alert" class="alert alert-normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>Anion Gap</label>
+            <span class="range-value"><span id="ag-val">10</span> mmol/L</span>
+          </div>
+          <input type="range" id="ag" min="4" max="25" value="10">
+          <div class="range-label">
+            <span id="ag-alert" class="alert alert-normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="range-label">
+            <label>Fio₂</label>
+            <span class="range-value"><span id="fio2-val">21</span>%</span>
+          </div>
+          <input type="range" id="fio2" min="21" max="100" value="21">
+          <div class="range-label">
+            <span id="fio2-alert" class="alert alert-normal">Room Air</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABG Interpretation Results -->
+      <div id="abg-results" style="margin-top: 1.5rem;">
+        <div class="summary">
+          <div class="summary-item">
+            <div class="summary-label">Primary Disorder</div>
+            <div class="summary-value" id="primary-disorder">Normal</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Compensation</div>
+            <div class="summary-value" id="compensation">—</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Severity</div>
+            <div class="summary-value" id="severity">—</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Expected PaCO₂</div>
+            <div class="summary-value" id="expected-paco2">—</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Delta Gap</div>
+            <div class="summary-value" id="delta-gap">—</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Mixed Disorder</div>
+            <div class="summary-value" id="mixed-disorder">No</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLEAR Path Method Display -->
+      <div class="info-box" style="margin-top: 1rem;">
+        <div class="info-box-title"><i class="fas fa-route"></i>CLEAR Path - Five-Step ABG Interpretation</div>
+        <div id="clear-path-method" style="font-size: 0.85rem;">
+          <ol style="padding-left: 1.5rem; line-height: 1.6;">
+            <li><strong>Oxygenation:</strong> <span id="step1-oxygenation">Normal</span></li>
+            <li><strong>pH Status:</strong> <span id="step2-ph">Normal</span></li>
+            <li><strong>Evaluate Parameters:</strong> <span id="step3-parameters">Normal</span></li>
+            <li><strong>Anion Gap Analysis:</strong> <span id="step4-ag">Normal</span></li>
+            <li><strong>Delta Gap Assessment:</strong> <span id="step5-delta">Normal</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Enhanced Management Recommendations -->
+      <div id="abg-management" style="display: none;" class="info-box" style="margin-top: 1rem; border-left: 4px solid var(--primary-dark);">
+        <div class="info-box-title"><i class="fas fa-medkit"></i>Enhanced ABG Management Recommendations</div>
+        <div id="abg-management-content"></div>
+      </div>
+
+      <!-- Drug Reference Section -->
+      <div id="abg-drugs" style="display: none;" class="info-box" style="margin-top: 1rem; border-left: 4px solid var(--accent);">
+        <div class="info-box-title"><i class="fas fa-pills"></i><span class="i18n" data-i18n="relevantMedications">Relevant Medications</span></div>
+        <div id="abg-drugs-content"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Data: Enhanced Clinical Management Guide v2.0 - Fixed Sliders & User-Controlled Navigation</p>
+      <p>Blue + Purple Theme • Dark Mode • Full Protocol Integration • Enhanced ABG Management • Manual Navigation Only</p>
+    </div>
+  </div>
+
+  <script>
+    // Translation support
+    const translations = {
+      en: {
+        title: "Clinical Dashboard",
+        complete: "Fixed & Enhanced",
+        subtitle: "Fully functional clinical decision support with enhanced automation and fixed slider functionality (v2.0).",
+        clinicalInputs: "Clinical Inputs",
+        gender: "Gender",
+        weight: "Weight",
+        na: "Na⁺",
+        k: "K⁺",
+        ca: "Ca²⁺",
+        mg: "Mg²⁺",
+        phos: "PO₄³⁻",
+        status: "Status",
+        tbw: "TBW",
+        naDeficit: "Na⁺ Deficit",
+        kDeficit: "K⁺ Deficit",
+        caDeficit: "Ca²⁺ Deficit",
+        mgDeficit: "Mg²⁺ Deficit",
+        phosDeficit: "PO₄³⁻ Deficit",
+        etiology: "Etiology",
+        clinicalReferences: "Clinical References",
+        abgTitle: "Arterial Blood Gas & Acid-Base Balance",
+        managementRecommendations: "Enhanced Automatic Management Recommendations",
+        relevantMedications: "Relevant Medications",
+        normal: "Normal",
+        mild: "Mild",
+        moderate: "Moderate",
+        severe: "Severe",
+        hypo: "Hypo",
+        eu: "Eu",
+        hyper: "Hyper"
+      },
+      es: {
+        title: "Panel Clínico",
+        complete: "Corregido y Mejorado",
+        subtitle: "Sistema de apoyo decisional clínico completamente funcional con automatización mejorada y funcionalidad de deslizador corregida (v2.0).",
+        clinicalInputs: "Datos Clínicos",
+        gender: "Género",
+        weight: "Peso",
+        na: "Na⁺",
+        k: "K⁺",
+        ca: "Ca²⁺",
+        mg: "Mg²⁺",
+        phos: "PO₄³⁻",
+        status: "Estado",
+        tbw: "ACT",
+        naDeficit: "Déficit de Na⁺",
+        kDeficit: "Déficit de K⁺",
+        caDeficit: "Déficit de Ca²⁺",
+        mgDeficit: "Déficit de Mg²⁺",
+        phosDeficit: "Déficit de PO₄³⁻",
+        etiology: "Etiología",
+        clinicalReferences: "Referencias Clínicas",
+        abgTitle: "Gas Arterial y Equilibrio Ácido-Base",
+        managementRecommendations: "Recomendaciones Automáticas Mejoradas",
+        relevantMedications: "Medicamentos Relevantes",
+        normal: "Normal",
+        mild: "Leve",
+        moderate: "Moderado",
+        severe: "Severo",
+        hypo: "Hipo",
+        eu: "Eu",
+        hyper: "Hiper"
+      }
+    };
+    
+    // Current language
+    let currentLanguage = localStorage.getItem('language') || navigator.language.split('-')[0] || 'en';
+    if (!translations[currentLanguage]) currentLanguage = 'en';
+    
+    // Language switching
+    const setLanguage = (lang) => {
+      currentLanguage = lang;
+      localStorage.setItem('language', lang);
+      document.documentElement.lang = lang;
+      document.getElementById('current-lang').textContent = lang.toUpperCase();
+      
+      // Update all translatable elements
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang][key]) {
+          el.textContent = translations[lang][key];
+        }
+      });
+    };
+    
+    // Initialize language
+    setLanguage(currentLanguage);
+
+    // State
+    const state = { g: 'm', w: 70, na: 140, k: 4.0, ca: 9.0, mg: 2.0, phos: 3.5, h: 'eu', creat: 1.0, bun: 15, ph: 7.40, paco2: 40, hco3: 24, pao2: 95, sao2: 98, be: 0, ag: 10, fio2: 21 };
+
+    // Previous values for change detection
+    const previousValues = { g: 'm', w: 70, na: 140, k: 4.0, ca: 9.0, mg: 2.0, phos: 3.5, h: 'eu', creat: 1.0, bun: 15, ph: 7.40, paco2: 40, hco3: 24, pao2: 95, sao2: 98, be: 0, ag: 10, fio2: 21 };
+
+    const els = {
+      wVal: document.getElementById('weight-val'),
+      naVal: document.getElementById('na-val'),
+      kVal: document.getElementById('k-val'),
+      caVal: document.getElementById('ca-val'),
+      mgVal: document.getElementById('mg-val'),
+      phosVal: document.getElementById('phos-val'),
+      naAlert: document.getElementById('na-alert'),
+      kAlert: document.getElementById('k-alert'),
+      caAlert: document.getElementById('ca-alert'),
+      mgAlert: document.getElementById('mg-alert'),
+      phosAlert: document.getElementById('phos-alert'),
+      tbw: document.getElementById('tbw'),
+      naDef: document.getElementById('na-def'),
+      kDef: document.getElementById('k-def'),
+      caDef: document.getElementById('ca-def'),
+      mgDef: document.getElementById('mg-def'),
+      phosDef: document.getElementById('phos-def'),
+      etiology: document.getElementById('etiology'),
+      cards: document.getElementById('cards-container'),
+      management: document.getElementById('management-content'),
+      managementContainer: document.getElementById('auto-management'),
+      theme: document.getElementById('theme-toggle'),
+      // ABG elements
+      phVal: document.getElementById('ph-val'),
+      paco2Val: document.getElementById('paco2-val'),
+      hco3Val: document.getElementById('hco3-val'),
+      pao2Val: document.getElementById('pao2-val'),
+      sao2Val: document.getElementById('sao2-val'),
+      beVal: document.getElementById('be-val'),
+      agVal: document.getElementById('ag-val'),
+      fio2Val: document.getElementById('fio2-val'),
+      phAlert: document.getElementById('ph-alert'),
+      paco2Alert: document.getElementById('paco2-alert'),
+      hco3Alert: document.getElementById('hco3-alert'),
+      pao2Alert: document.getElementById('pao2-alert'),
+      sao2Alert: document.getElementById('sao2-alert'),
+      beAlert: document.getElementById('be-alert'),
+      agAlert: document.getElementById('ag-alert'),
+      fio2Alert: document.getElementById('fio2-alert'),
+      primaryDisorder: document.getElementById('primary-disorder'),
+      compensation: document.getElementById('compensation'),
+      severity: document.getElementById('severity'),
+      expectedPaco2: document.getElementById('expected-paco2'),
+      deltaGap: document.getElementById('delta-gap'),
+      mixedDisorder: document.getElementById('mixed-disorder'),
+      abgManagement: document.getElementById('abg-management-content'),
+      abgManagementContainer: document.getElementById('abg-management'),
+      abgDrugs: document.getElementById('abg-drugs-content'),
+      abgDrugsContainer: document.getElementById('abg-drugs')
+    };
+
+    // Risk helpers
+    const getNaRisk = n => n < 125 ? ['Severe', 'alert-severe', 'risk-border-severe'] : 
+                         n < 130 ? ['Moderate', 'alert-moderate', 'risk-border-moderate'] : 
+                         n < 135 ? ['Mild', 'alert-mild', 'risk-border-mild'] : 
+                         n > 155 ? ['Severe', 'alert-severe', 'risk-border-severe'] : 
+                         n > 150 ? ['Moderate', 'alert-moderate', 'risk-border-moderate'] : 
+                         n > 145 ? ['Mild', 'alert-mild', 'risk-border-mild'] : 
+                         ['Normal', 'alert-normal', 'risk-border-normal'];
+    
+    const getKRisk = k => k < 2.5 ? ['Severe', 'alert-severe', 'risk-border-severe'] : 
+                         k < 3.0 ? ['Moderate', 'alert-moderate', 'risk-border-moderate'] : 
+                         k < 3.5 ? ['Mild', 'alert-mild', 'risk-border-mild'] : 
+                         k > 6.5 ? ['Severe', 'alert-severe', 'risk-border-severe'] : 
+                         k > 6.0 ? ['Moderate', 'alert-moderate', 'risk-border-moderate'] : 
+                         k > 5.5 ? ['Mild', 'alert-mild', 'risk-border-mild'] : 
+                         ['Normal', 'alert-normal', 'risk-border-normal'];
+
+    const getCaRisk = ca => ca < 7.0 ? ['Severe', 'alert-severe', 'risk-border-severe'] : 
+                           ca < 8.0 ? ['Moderate', 'alert-moderate', 'risk-border-moderate'] : 
+                           ca < 8.5 ? ['Mild', 'alert-mild', 'risk-border-mild'] : 
+                           ca > 11.0 ? ['Severe', 'alert-severe', 'risk-border-severe'] : 
+                           ca > 10.5 ? ['Moderate', 'alert-moderate', 'risk-border-moderate'] : 
+                           ca > 10.2 ? ['Mild', 'alert-mild', 'risk-border-mild'] : 
+                           ['Normal', 'alert-normal', 'risk-border-normal'];
+
+    const getMgRisk = mg => mg < 1.2 ? ['Severe', 'alert-severe', 'risk-border-severe'] : 
+                          mg < 1.5 ? ['Moderate', 'alert-moderate', 'risk-border-moderate'] : 
+                          mg < 1.7 ? ['Mild', 'alert-mild', 'risk-border-mild'] : 
+                          mg > 2.7 ? ['Severe', 'alert-severe', 'risk-border-severe'] : 
+                          mg > 2.5 ? ['Moderate', 'alert-moderate', 'risk-border-moderate'] : 
+                          mg > 2.3 ? ['Mild', 'alert-mild', 'risk-border-mild'] : 
+                          ['Normal', 'alert-normal', 'risk-border-normal'];
+
+    const getPhosRisk = phos => phos < 2.0 ? ['Severe', 'alert-severe', 'risk-border-severe'] : 
+                               phos < 2.3 ? ['Moderate', 'alert-moderate', 'risk-border-moderate'] : 
+                               phos < 2.5 ? ['Mild', 'alert-mild', 'risk-border-mild'] : 
+                               phos > 5.0 ? ['Severe', 'alert-severe', 'risk-border-severe'] : 
+                               phos > 4.5 ? ['Moderate', 'alert-moderate', 'risk-border-moderate'] : 
+                               phos > 4.2 ? ['Mild', 'alert-mild', 'risk-border-mild'] : 
+                               ['Normal', 'alert-normal', 'risk-border-normal'];
+
+    // Etiology inference
+    const inferEtiology = (n, k, ca, mg, phos, creat, bun, h) => {
+      if (n < 125) return "Severe Hyponatremia (SIADH/HF/Cirrhosis)";
+      if (n < 130) return "Moderate Hyponatremia";
+      if (n > 155) return "Severe Hypernatremia (DI/Free Water Loss)";
+      if (n > 150) return "Moderate Hypernatremia";
+      if (k > 6.5) return "Critical Hyperkalemia (RF/RAASi)";
+      if (k < 2.5) return "Critical Hypokalemia (GI/Losses)";
+      if (ca < 7.0) return "Severe Hypocalcemia";
+      if (ca > 11.0) return "Severe Hypercalcemia";
+      if (mg < 1.2) return "Severe Hypomagnesemia";
+      if (phos < 2.0) return "Severe Hypophosphatemia";
+      if (creat > 4.0) return "Severe AKI/CKD";
+      if (creat > 2.0 && bun > 40) return "Renal Failure (AKI/CKD)";
+      if (bun/crea > 20) return "Prerenal Azotemia";
+      if (n < 135 && k < 3.5 && h === 'eu') return "DKA Suspected";
+      return "—";
+    };
+
+    // ABG Knowledge Base
+    const ABG_KB = {
+      normal: {
+        pH: [7.35, 7.45],
+        paco2: [35, 45],
+        hco3: [22, 26],
+        pao2: [80, 100],
+        sao2: [95, 100],
+        be: [-4, 2],
+        ag: [8, 12],
+        fio2: [21, 21]
+      }
+    };
+
+    // ABG Risk Assessment
+    const getABGRisk = (value, range) => {
+      const [min, max] = range;
+      if (value < min) return {
+        level: value < min * 0.95 ? 'Severe' : value < min * 0.98 ? 'Moderate' : 'Mild',
+        class: value < min * 0.95 ? 'alert-severe' : value < min * 0.98 ? 'alert-moderate' : 'alert-mild'
+      };
+      if (value > max) return {
+        level: value > max * 1.05 ? 'Severe' : value > max * 1.02 ? 'Moderate' : 'Mild',
+        class: value > max * 1.05 ? 'alert-severe' : value > max * 1.02 ? 'alert-moderate' : 'alert-mild'
+      };
+      return { level: 'Normal', class: 'alert-normal' };
+    };
+
+    // ABG Interpretation
+    const interpretABG = (ph, paco2, hco3, ag) => {
+      let primaryDisorder = 'Normal';
+      let severity = 'None';
+      let expectedPaco2 = '—';
+      let management = null;
+      let medications = null;
+      
+      if (ph < 7.35) {
+        if (paco2 > 45) {
+          primaryDisorder = 'Respiratory Acidosis';
+          severity = paco2 > 80 ? 'Severe' : paco2 > 60 ? 'Moderate' : 'Mild';
+          expectedPaco2 = `${paco2} (Primary)`;
+        } else if (hco3 < 22) {
+          if (ag > 12) {
+            primaryDisorder = 'High Anion Gap Metabolic Acidosis';
+            severity = hco3 < 10 ? 'Severe' : hco3 < 15 ? 'Moderate' : 'Mild';
+            expectedPaco2 = Math.round((1.5 * hco3) + 8);
+          } else {
+            primaryDisorder = 'Normal Anion Gap Metabolic Acidosis';
+            severity = hco3 < 10 ? 'Severe' : hco3 < 15 ? 'Moderate' : 'Mild';
+            expectedPaco2 = Math.round((1.5 * hco3) + 8);
+          }
+        }
+      } else if (ph > 7.45) {
+        if (paco2 < 35) {
+          primaryDisorder = 'Respiratory Alkalosis';
+          severity = paco2 < 20 ? 'Severe' : paco2 < 25 ? 'Moderate' : 'Mild';
+        } else if (hco3 > 26) {
+          primaryDisorder = 'Metabolic Alkalosis';
+          severity = hco3 > 35 ? 'Severe' : hco3 > 30 ? 'Moderate' : 'Mild';
+          expectedPaco2 = Math.round((0.7 * hco3) + 21);
+        }
+      }
+
+      // Generate enhanced management for abnormal results
+      if (primaryDisorder !== 'Normal') {
+        management = generateEnhancedABGManagement(primaryDisorder, severity, ph, hco3, ag, paco2);
+        medications = generateEnhancedABGMedications(primaryDisorder, severity);
+      }
+
+      return { 
+        primaryDisorder, 
+        severity, 
+        expectedPaco2: expectedPaco2 !== '—' ? `${expectedPaco2} mmHg` : '—',
+        management,
+        medications
+      };
+    };
+
+    // Enhanced ABG Management Generation
+    const generateEnhancedABGManagement = (primaryDisorder, severity, ph, hco3, ag, paco2) => {
+      const baseManagement = {
+        principles: '',
+        immediate: '',
+        non_pharma: [],
+        pharma: []
+      };
+
+      switch (primaryDisorder) {
+        case 'Respiratory Acidosis':
+          baseManagement.principles = 'Address underlying respiratory cause. Improve ventilation and oxygenation. Consider mechanical ventilation if severe.';
+          baseManagement.immediate = 'Check airway patency. Assess need for immediate intubation. Increase FiO₂. Monitor ABG frequently.';
+          baseManagement.non_pharma = [
+            'Position patient upright (45°) to improve ventilation',
+            'Encourage deep breathing and coughing exercises',
+            'Consider incentive spirometry',
+            'Monitor mental status and respiratory effort closely',
+            'Prepare for potential intubation if pH <7.20'
+          ];
+          baseManagement.pharma = [
+            {
+              name: 'Bronchodilators',
+              dose: 'Albuterol 2.5mg nebulized q20min × 3, then q4h PRN',
+              precautions: 'Monitor heart rate, tremor. Check K+ levels.',
+              contraindications: 'Severe tachycardia, arrhythmia'
+            },
+            {
+              name: 'Corticosteroids',
+              dose: 'Prednisone 40-60mg PO daily or Methylprednisolone 125mg IV q6h',
+              precautions: 'Monitor blood glucose, infection risk. Consider PPI prophylaxis.',
+              contraindications: 'Active GI bleeding, uncontrolled diabetes'
+            }
+          ];
+          break;
+
+        case 'Metabolic Acidosis':
+          baseManagement.principles = 'Treat underlying cause. Consider bicarbonate therapy only if severe (pH <7.20). Monitor for overcorrection.';
+          baseManagement.immediate = 'Identify and treat underlying cause. Assess volume status. Check lactate, ketones, and toxicology screen.';
+          baseManagement.non_pharma = [
+            'Aggressive volume resuscitation with normal saline',
+            'Treat underlying infection if present',
+            'Remove offending toxins/drugs',
+            'Consider dialysis for severe cases (pH <7.10)',
+            'Monitor potassium closely - may need replacement'
+          ];
+          baseManagement.pharma = [
+            {
+              name: 'Sodium Bicarbonate',
+              dose: '1-2 mEq/kg IV bolus, then 150-250 mEq in D5W over 4-8 hours',
+              prep: 'Mix 50 mEq (50 mL) NaHCO₃ in 450 mL D5W for 0.1 mEq/mL solution',
+              precautions: 'Can cause hypernatremia, volume overload. Monitor Ca²⁺ levels.',
+              contraindications: 'Hypocalcemia without calcium replacement'
+            }
+          ];
+          break;
+
+        case 'Respiratory Alkalosis':
+          baseManagement.principles = 'Treat underlying cause of hyperventilation. Provide reassurance. Consider sedation if anxiety-related.';
+          baseManagement.immediate = 'Assess for hypoxia, pain, anxiety, or central causes. Reduce respiratory rate through controlled breathing.';
+          baseManagement.non_pharma = [
+            'Reassure patient and explain hyperventilation syndrome',
+            'Have patient breathe into cupped hands or paper bag',
+            'Address underlying pain or anxiety',
+            'Consider behavioral therapy for panic disorder',
+            'Monitor for progression to respiratory failure'
+          ];
+          baseManagement.pharma = [
+            {
+              name: 'Anxiolytics',
+              dose: 'Lorazepam 0.5-1mg PO/IV q6-8h PRN',
+              precautions: 'Monitor respiratory drive. Avoid in respiratory failure.',
+              contraindications: 'Respiratory depression, severe COPD'
+            }
+          ];
+          break;
+
+        case 'Metabolic Alkalosis':
+          baseManagement.principles = 'Correct volume depletion and electrolyte imbalances. Address underlying cause. Avoid aggressive bicarbonate therapy.';
+          baseManagement.immediate = 'Assess volume status. Replace chloride and potassium deficits. Identify and stop offending agents.';
+          baseManagement.non_pharma = [
+            'Normal saline infusion 125-250 mL/hr until euvolemic',
+            'Replace K+ aggressively (target >4.0 mEq/L)',
+            'Stop diuretics, laxatives, and other contributing agents',
+            'Monitor for hypokalemia and hypochloremia',
+            'Consider acetazolamide for refractory cases'
+          ];
+          baseManagement.pharma = [
+            {
+              name: 'Acetazolamide',
+              dose: '250-500mg PO/IV q12h for 2-3 days',
+              precautions: 'Can worsen hypokalemia. Monitor K+ and bicarbonate levels.',
+              contraindications: 'Sulfa allergy, severe liver disease'
+            }
+          ];
+          break;
+
+        default:
+          baseManagement.principles = 'Normal ABG values. Continue routine monitoring.';
+          baseManagement.immediate = 'No immediate intervention required. Maintain current management.';
+      }
+
+      // Add severity-specific adjustments
+      if (severity === 'Severe') {
+        baseManagement.immediate += ' URGENT: Immediate intervention required. Consider ICU admission.';
+        baseManagement.non_pharma.unshift('URGENT: Continuous cardiac monitoring required');
+        baseManagement.non_pharma.unshift('URGENT: Frequent ABG monitoring (q1-2h)');
+      }
+
+      return baseManagement;
+    };
+
+    // Enhanced ABG Medications
+    const generateEnhancedABGMedications = (primaryDisorder, severity) => {
+      const medications = [];
+      
+      // Add severity-based medication recommendations
+      if (severity === 'Severe') {
+        medications.push({
+          name: 'Emergency Support',
+          dose: 'Consider ICU transfer, mechanical ventilation, or dialysis as indicated',
+          precautions: 'Continuous monitoring required',
+          contraindications: 'None in emergency situations'
+        });
+      }
+
+      return medications;
+    };
+
+    // Enhanced automatic management generation
+    const generateAutoManagement = (n, k, ca, mg, phos, h) => {
+      const recommendations = [];
+      
+      // Sodium management - Enhanced with more detailed protocols
+      if (n < 135 || n > 145) {
+        const severity = n < 125 ? 'Severe' : n < 130 ? 'Moderate' : 'Mild';
+        const isHyponatremia = n < 135;
+        const tbw = state.g === 'm' ? 0.6 * state.w : 0.5 * state.w;
+        const deficit = Math.round((140 - n) * tbw);
+        
+        recommendations.push({
+          electrolyte: 'Sodium',
+          value: n,
+          severity,
+          causes: isHyponatremia ? 
+            (n < 125 ? ['SIADH', 'Heart Failure', 'Cirrhosis', 'Severe vomiting/diarrhea', 'Adrenal insufficiency', 'Hypothyroidism'] : 
+                      ['Diuretic use', 'Renal impairment', 'Inadequate intake', 'Beer potomania', 'Primary polydipsia']) :
+            ['Free water loss (DI)', 'Inadequate water intake', 'Osmotic diuresis', 'Sodium gain', 'Hyperaldosteronism', 'Hyperglycemia'],
+          management: isHyponatremia ? generateHyponatremiaManagement(n, severity, tbw, deficit, h) : 
+                                        generateHypernatremiaManagement(n, severity, tbw),
+          priority: severity === 'Severe' ? 'immediate' : severity === 'Moderate' ? 'urgent' : 'routine',
+          monitoring: generateSodiumMonitoring(n, severity),
+          prognosis: generateSodiumPrognosis(n, severity)
+        });
+      }
+
+      // Enhanced Potassium management
+      if (k < 3.5 || k > 5.5) {
+        const severity = k < 2.5 || k > 6.5 ? 'Severe' : k < 3.0 || k > 6.0 ? 'Moderate' : 'Mild';
+        const deficit = k < 3.5 ? Math.ceil((4.0 - k) * 300) : 0;
+        
+        recommendations.push({
+          electrolyte: 'Potassium',
+          value: k.toFixed(1),
+          severity,
+          causes: k < 3.5 ? 
+            ['Diuretic use', 'Vomiting/diarrhea', 'Renal tubular defects', 'Alkalosis', 'Insulin therapy', 'Beta-agonists'] : 
+            ['Renal failure', 'RAAS inhibitors', 'Tissue injury', 'Metabolic acidosis', 'Cell lysis', 'Medications'],
+          management: generatePotassiumManagement(k, severity, deficit),
+          priority: k < 2.5 || k > 6.5 ? 'immediate' : k < 3.0 || k > 6.0 ? 'urgent' : 'routine',
+          monitoring: generatePotassiumMonitoring(k, severity),
+          prognosis: generatePotassiumPrognosis(k, severity),
+          ecgChanges: k < 2.5 || k > 6.0 ? 'Yes - Requires continuous monitoring' : 'No'
+        });
+      }
+
+      // Enhanced Calcium management
+      if (ca < 8.5 || ca > 10.2) {
+        const severity = ca < 7.0 || ca > 11.0 ? 'Severe' : ca < 8.0 || ca > 10.5 ? 'Moderate' : 'Mild';
+        
+        recommendations.push({
+          electrolyte: 'Calcium',
+          value: ca.toFixed(1),
+          severity,
+          causes: ca < 8.5 ? 
+            ['Vitamin D deficiency', 'Hypoparathyroidism', 'Renal failure', 'Malabsorption', 'Pancreatitis', 'Massive transfusion'] : 
+            ['Hyperparathyroidism', 'Malignancy', 'Vitamin D toxicity', 'Thiazide diuretics', 'Immobilization', 'Granulomatous disease'],
+          management: generateCalciumManagement(ca, severity),
+          priority: ca < 7.0 || ca > 11.0 ? 'immediate' : ca < 8.0 || ca > 10.5 ? 'urgent' : 'routine',
+          monitoring: generateCalciumMonitoring(ca, severity),
+          prognosis: generateCalciumPrognosis(ca, severity),
+          cardiacRisk: ca < 7.0 || ca > 12.0 ? 'High - QT prolongation, arrhythmias' : 'Low'
+        });
+      }
+
+      // Enhanced Magnesium management
+      if (mg < 1.7 || mg > 2.3) {
+        const severity = mg < 1.2 || mg > 2.7 ? 'Severe' : mg < 1.5 || mg > 2.5 ? 'Moderate' : 'Mild';
+        
+        recommendations.push({
+          electrolyte: 'Magnesium',
+          value: mg.toFixed(1),
+          severity,
+          causes: mg < 1.7 ? 
+            ['Diuretics', 'Alcoholism', 'GI losses', 'Diabetes', 'Medications (PPIs, aminoglycosides)', 'Malnutrition', 'Hyperthyroidism'] : 
+            ['Renal failure', 'Excessive supplementation', 'Hypothyroidism', 'Lithium therapy', 'Familial hypomagnesuria'],
+          management: generateMagnesiumManagement(mg, severity),
+          priority: mg < 1.2 ? 'immediate' : mg < 1.5 || mg > 2.5 ? 'urgent' : 'routine',
+          monitoring: generateMagnesiumMonitoring(mg, severity),
+          prognosis: generateMagnesiumPrognosis(mg, severity),
+          refractoryNote: mg < 1.2 ? 'May cause refractory K+ and Ca²⁺ deficiencies' : ''
+        });
+      }
+
+      // Enhanced Phosphate management
+      if (phos < 2.5 || phos > 4.2) {
+        const severity = phos < 2.0 || phos > 5.0 ? 'Severe' : phos < 2.3 || phos > 4.5 ? 'Moderate' : 'Mild';
+        
+        recommendations.push({
+          electrolyte: 'Phosphate',
+          value: phos.toFixed(1),
+          severity,
+          causes: phos < 2.5 ? 
+            ['Refeeding syndrome', 'Alcoholism', 'Malnutrition', 'Diabetic ketoacidosis', 'Hyperparathyroidism', 'Vitamin D deficiency', 'Massive burns'] : 
+            ['Renal failure', 'Tumor lysis syndrome', 'Rhabdomyolysis', 'Excessive supplementation', 'Hypoparathyroidism', 'Acromegaly'],
+          management: generatePhosphateManagement(phos, severity),
+          priority: phos < 2.0 ? 'immediate' : phos < 2.3 || phos > 4.5 ? 'urgent' : 'routine',
+          monitoring: generatePhosphateMonitoring(phos, severity),
+          prognosis: generatePhosphatePrognosis(phos, severity),
+          complications: phos < 2.0 ? 'Rhabdomyolysis, respiratory failure, hemolysis' : 'Metastatic calcification, renal stones'
+        });
+      }
+
+      return recommendations;
+    };
+
+    // Detailed management generators
+    const generateHyponatremiaManagement = (na, severity, tbw, deficit, h) => {
+      if (na < 125) {
+        return {
+          immediate: `<strong>3% NaCl:</strong> 100 mL IV over 10 min, repeat ×2 if no response<br>
+                     <strong>Target:</strong> ↑Na⁺ by 4-6 mEq/L in first 6 hours<br>
+                     <strong>Rate:</strong> 0.5-1 mEq/L/hr maximum<br>
+                     <strong>Precautions:</strong> Monitor for ODS, seizures at correction >8 mEq/L/24h`,
+          maintenance: `<strong>Stop:</strong> Avoid rapid correction after 6 hours<br>
+                       <strong>Maximum:</strong> 8 mEq/L/24h to prevent ODS<br>
+                       <strong>Monitoring:</strong> Check Na⁺ q2h × 3, then q4h<br>
+                       <strong>Post-correction:</strong> Consider DDAVP if over-correction occurs`,
+          medications: `<strong>Hypertonic saline (3%):</strong> 513 mEq/L Na⁺<br>
+                       <strong>Dose calculation:</strong> Volume needed = (Δdesired × TBW) / (513 - desired_Na)<br>
+                       <strong>DDAVP:</strong> 1-2 mcg IV/SC for over-correction<br>
+                       <strong>Desmopressin:</strong> 1-4 mcg q6-8h to stabilize Na⁺`
+        };
+      } else {
+        return {
+          immediate: `<strong>Fluid restriction:</strong> 1000-1500 mL/day<br>
+                     <strong>Rate:</strong> Gradual correction 0.25-0.5 mEq/L/hr<br>
+                     <strong>Target:</strong> 4-6 mEq/L/24h maximum`,
+          maintenance: `<strong>Correct underlying cause</strong><br>
+                       <strong>Monitoring:</strong> Daily electrolytes<br>
+                       <strong>Rate:</strong> No more than 8 mEq/L/24h`,
+          medications: h === 'eu' ? `<strong>Tolvaptan:</strong> 15 mg PO daily, titrate to 30-60 mg<br>
+                                         <strong>Precautions:</strong> Hepatic toxicity, rapid Na⁺ rise > 12 mEq/24h discontinue<br>
+                                         <strong>Urea:</strong> 15-30 g PO daily in divided doses<br>
+                                         <strong>Contraindications:</strong> Hypovolemia, inability to access water` : 'None specific'
+        };
+      }
+    };
+
+    const generateHypernatremiaManagement = (na, severity, tbw) => {
+      const freeWaterDeficit = Math.round(tbw * ((na/140) - 1));
+      return {
+        immediate: `<strong>Calculate water deficit:</strong> TBW × [(Current Na⁺/140) - 1] = ${freeWaterDeficit} mL<br>
+                   <strong>First 4-6h:</strong> Administer 50% of deficit<br>
+                   <strong>Rate:</strong> 0.5 mEq/L/hr maximum<br>
+                   <strong>Target:</strong> ↓Na⁺ by 10-12 mEq/L in 24h`,
+        maintenance: `<strong>Continue:</strong> Replace remaining deficit over 24-48h<br>
+                     <strong>Monitor:</strong> Na⁺ q2h initially, then q4h<br>
+                     <strong>Check:</strong> Urine output, glucose, mental status<br>
+                     <strong>Precautions:</strong> Avoid rapid correction → cerebral edema`,
+        medications: `<strong>D5W:</strong> 50 mL/hr initially (free water replacement)<br>
+                     <strong>0.45% NaCl:</strong> For concurrent volume depletion<br>
+                     <strong>Desmopressin:</strong> 0.05 mcg/kg IV for central DI<br>
+                     <strong>Thiazide diuretics:</strong> For nephrogenic DI (hydrochlorothiazide 1-2 mg/kg/day)<br>
+                     <strong>Amiloride:</strong> 5-10 mg PO BID for nephrogenic DI`
+      };
+    };
+
+    const generatePotassiumManagement = (k, severity, deficit) => {
+      if (k < 2.5) {
+        return {
+          immediate: `<strong>KCl infusion:</strong> 20-40 mEq/hr IV (max 10 mEq/L solution)<br>
+                     <strong>ECG monitoring required</strong><br>
+                     <strong>Rate:</strong> ≤ 20 mEq/hr in peripheral line, ≤ 40 mEq/hr central<br>
+                     <strong>Precautions:</strong> Cardiac monitoring, check for muscle weakness`,
+          maintenance: `<strong>Oral KCl:</strong> 40-80 mEq PO in divided doses<br>
+                       <strong>Correct concurrent Mg²⁺ deficiency first</strong><br>
+                       <strong>Monitoring:</strong> K⁺ q4-6h during replacement, ECG q2h<br>
+                       <strong>Rate:</strong> No more than 20 mEq/hr peripheral, 40 mEq/hr central`,
+          medications: `<strong>KCl tablets:</strong> 20 mEq each (8% solution)<br>
+                       <strong>IV KCl:</strong> 2 mEq/mL (max 40 mEq/L)<br>
+                       <strong>Alternative:</strong> K-Phos if phosphate also low (3 mmol K⁺/mmol PO₄³⁻)<br>
+                       <strong>MgSO₄:</strong> 2-4g IV if Mg²⁺ <1.5 mg/dL (refractory K⁺)`
+        };
+      } else if (k > 6.5) {
+        return {
+          immediate: `<strong>Calcium gluconate 10%:</strong> 10 mL IV over 2-5 min (cardiac protection)<br>
+                     <strong>Insulin + D50W:</strong> 10 U IV + 25g D50W over 1 min<br>
+                     <strong>Albuterol:</strong> 10-20 mg nebulized over 10 min<br>
+                     <strong>Rate:</strong> K⁺ drops 1-1.5 mEq/L per therapy, monitor q15-30min`,
+          maintenance: `<strong>Remove high K⁺ sources</strong><br>
+                       <strong>Loop diuretics:</strong> Furosemide 40-80 mg IV (if urine output >0.5 mL/kg/hr)<br>
+                       <strong>Binders:</strong> Sodium zirconium cyclosilicate 10g PO daily<br>
+                       <strong>Monitoring:</strong> K⁺ q1h initially, then q4-6h`,
+          medications: `<strong>Lokelma:</strong> 10g PO qdaily (onset 1h, peak 6h)<br>
+                       <strong>Precautions:</strong> Edema, hypotension, not for emergency<br>
+                       <strong>Patiromer:</strong> 8.4-25g PO daily with food (onset 7h)<br>
+                       <strong>Kayexalate:</strong> 30-60g PO/PR (avoid with sorbitol - colonic necrosis)<br>
+                       <strong>Emergency:</strong> Hemodialysis for refractory or severe ECG changes`
+        };
+      } else {
+        return {
+          immediate: k < 3.5 ? `<strong>KCl:</strong> 20-40 mEq PO daily<br><strong>Rate:</strong> Replace 10-20 mEq per day` : 
+                        `<strong>Loop diuretic:</strong> Furosemide 20-40mg IV/PO<br><strong>Rate:</strong> K⁺ drops 0.5-1 mEq/L with diuresis`,
+          maintenance: k < 3.5 ? `<strong>Monitor K⁺ qdaily</strong><br><strong>Rate:</strong> No more than 20 mEq/day PO` : 
+                        `<strong>Monitor K⁺ q2-3 days</strong><br><strong>Rate:</strong> Gradual reduction preferred`,
+          medications: k < 3.5 ? `<strong>KCl elixir:</strong> 20 mEq/15mL<br><strong>Micro-K:</strong> 8 mEq extended-release tablets` : 
+                        `<strong>Furosemide:</strong> 20-40mg daily<br><strong>Mild cases:</strong> Dietary K⁺ restriction`
+        };
+      }
+    };
+
+    const generateCalciumManagement = (ca, severity) => {
+      if (ca < 7.0) {
+        return {
+          immediate: `<strong>Calcium gluconate 10%:</strong> 10-20 mL IV over 10 min<br>
+                     <strong>Repeat:</strong> If symptoms persist after 10 min<br>
+                     <strong>Rate:</strong> 0.5-1 mEq/kg/hr continuous infusion<br>
+                     <strong>Precautions:</strong> ECG monitoring (QT interval), avoid extravasation`,
+          maintenance: `<strong>Calcium carbonate:</strong> 1-2g PO TID with meals<br>
+                       <strong>Vitamin D3:</strong> 1000-2000 IU daily<br>
+                       <strong>Calcitriol:</strong> 0.25-0.5 mcg daily (renal insufficiency)<br>
+                       <strong>Magnesium repletion essential:</strong> Mg²⁺ <2.0 requires correction first<br>
+                       <strong>Rate:</strong> Oral Ca²⁺ 500-1000mg 2-3x daily`,
+          medications: `<strong>Calcium carbonate:</strong> 500mg elemental Ca²⁺ per tablet<br>
+                       <strong>Calcium gluconate 10%:</strong> 93 mg elemental Ca²⁺/10mL<br>
+                       <strong>Calcium chloride:</strong> 272 mg elemental Ca²⁺/10mL (more irritating)<br>
+                       <strong>Calcitriol:</strong> 0.25-0.5 mcg daily (active vitamin D)<br>
+                       <strong>Cholecalciferol:</strong> 1000-5000 IU daily (vitamin D3)`
+        };
+      } else if (ca > 11.0) {
+        return {
+          immediate: `<strong>Aggressive hydration:</strong> NS 200-500 mL/hr<br>
+                     <strong>Loop diuretics:</strong> Furosemide 20-40mg IV (after volume replete)<br>
+                     <strong>Target urine output:</strong> >200 mL/hr<br>
+                     <strong>Rate:</strong> ↓Ca²⁺ by 0.5-1 mg/dL/hr maximum`,
+          maintenance: `<strong>Bisphosphonates:</strong> Zoledronic acid 4mg IV or Pamidronate 60-90mg IV<br>
+                       <strong>Calcitonin:</strong> 4-8 IU/kg q6-12h<br>
+                       <strong>Denosumab:</strong> 120mg SC (if bisphosphonate-resistant)<br>
+                       <strong>Rate:</strong> Ca²⁺ normalizes over 24-72h<br>
+                       <strong>Precautions:</strong> Monitor for hypocalcemia after bisphosphonates`,
+          medications: `<strong>Zoledronic acid:</strong> 4mg IV over 15min (onset 24-48h)<br>
+                       <strong>Precautions:</strong> Acute phase reaction, nephrotoxicity, ONJ risk<br>
+                       <strong>Pamidronate:</strong> 60-90mg IV over 2-4hrs (onset 24-72h)<br>
+                       <strong>Calcitonin:</strong> 100-200 IU IM/SC q6h (onset 1-2h, tachyphylaxis)<br>
+                       <strong>Denosumab:</strong> 120mg SC qmonthly (RANKL inhibitor)<br>
+                       <strong>Hydration:</strong> 3-4L NS + furosemide 20-40mg IV q6h`
+        };
+      } else {
+        return {
+          immediate: ca < 8.5 ? `<strong>Calcium supplement:</strong> 500-1000mg PO daily<br><strong>Rate:</strong> Increase 0.5-1 mg/dL per day` : 
+                        `<strong>Hydration:</strong> 2-3L/day<br><strong>Stop:</strong> Offending medications<br><strong>Rate:</strong> Decrease 0.5-1 mg/dL per day`,
+          maintenance: ca < 8.5 ? `<strong>Monitor Ca²⁺ q2-4 weeks</strong><br><strong>Rate:</strong> Gradual replacement preferred` : 
+                        `<strong>Monitor Ca²⁺ weekly</strong><br><strong>Rate:</strong> Avoid rapid correction`,
+          medications: ca < 8.5 ? `<strong>Calcium carbonate:</strong> 500-1000mg BID-TID<br><strong>Calcium citrate:</strong> 200-400mg BID (better absorption)` : `None specific`
+        };
+      }
+    };
+
+    const generateMagnesiumManagement = (mg, severity) => {
+      if (mg < 1.2) {
+        return {
+          immediate: `<strong>MgSO₄ 50%:</strong> 4-8g IV over 1 hr, then 1-2g/hr<br>
+                     <strong>Severe deficiency:</strong> 8-12g IV in first 24 hrs<br>
+                     <strong>Rate:</strong> ≤ 1g/hr (preferably over 6-8hrs for severe)<br>
+                     <strong>Precautions:</strong> Monitor deep tendon reflexes, respiratory rate, Bp`,
+          maintenance: `<strong>PO Mg oxide:</strong> 400-800mg PO BID<br>
+                       <strong>Duration:</strong> 3-5 days to replete stores<br>
+                       <strong>Monitoring:</strong> Mg²⁺ daily, DTRs q4h during IV therapy<br>
+                       <strong>Rate:</strong> Oral replacement 300-400mg elemental Mg²⁺ per day`,
+          medications: `<strong>MgSO₄ 50%:</strong> 4mg elemental Mg/mL<br>
+                       <strong>Precautions:</strong> Hypotension, respiratory depression, hypocalcemia<br>
+                       <strong>Mg oxide:</strong> 60mg elemental Mg per 400mg tablet<br>
+                       <strong>Mg gluconate:</strong> 12mg elemental Mg per 500mg tablet<br>
+                       <strong>Mg citrate:</strong> 24mg elemental Mg per 1g powder`
+        };
+      } else {
+        return {
+          immediate: mg < 1.7 ? `<strong>MgSO₄:</strong> 2-4g IV q6h<br><strong>Rate:</strong> 0.5-1g/hr infusion` : 
+                        `<strong>Stop:</strong> Mg-containing medications<br><strong>Hydration:</strong> 2-3L/day`,
+          maintenance: mg < 1.7 ? `<strong>PO Mg supplement:</strong> 400mg BID<br><strong>Rate:</strong> Replete over 3-4 days` : 
+                        `<strong>Hydration:</strong> 2-3L/day<br><strong>Rate:</strong> Avoid rapid changes`,
+          medications: mg < 1.7 ? `<strong>Mg sulfate:</strong> 2-4g IV q6h<br><strong>Mg oxide:</strong> 400-800mg PO daily` : 'None specific'
+        };
+      }
+    };
+
+    const generatePhosphateManagement = (phos, severity) => {
+      if (phos < 2.0) {
+        return {
+          immediate: `<strong>KPhos:</strong> 0.25-0.5 mmol/kg IV over 6 hrs<br>
+                     <strong>Severe (<1.0):</strong> 0.5-1.0 mmol/kg over 12 hrs<br>
+                     <strong>Rate:</strong> Maximum infusion 0.5 mmol/kg/hr<br>
+                     <strong>Precautions:</strong> Monitor Ca²⁺, K⁺, Mg²⁺ q6h, watch for hypocalcemia`,
+          maintenance: `<strong>PO phosphate:</strong> Neutra-Phos 250-500mg TID<br>
+                       <strong>Correct:</strong> Vitamin D deficiency<br>
+                       <strong>Monitor:</strong> Ca²⁺, K⁺, Mg²⁺ q6h during IV therapy<br>
+                       <strong>Rate:</strong> Oral replacement 500-1000mg daily in divided doses`,
+          medications: `<strong>Potassium phosphate:</strong> 3 mmol PO/mL (K⁺ and PO₄³⁻)<br>
+                       <strong>Precautions:</strong> Hyperkalemia risk, use NaPhos if K⁺ normal<br>
+                       <strong>Sodium phosphate:</strong> 3 mmol PO/mL<br>
+                       <strong>Neutra-Phos:</strong> 250mg elemental PO per tablet<br>
+                       <strong>KPhos IV:</strong> 3 mmol/mL (0.5M) or 1.5M solution<br>
+                       <strong>Contraindications:</strong> Hypercalcemia, renal failure without dialysis`
+        };
+      } else {
+        return {
+          immediate: phos < 2.5 ? `<strong>PO phosphate:</strong> 250-500mg TID<br><strong>Rate:</strong> Replace 500-1000mg daily` : 
+                        `<strong>Hydration:</strong> 2-3L/day<br><strong>Stop:</strong> Phosphate supplements<br><strong>Rate:</strong> ↓0.5-1 mg/dL per day`,
+          maintenance: phos < 2.5 ? `<strong>Monitor PO₄³⁻ qdaily</strong><br><strong>Rate:</strong> Gradual replacement over 3-5 days` : 
+                        `<strong>Monitor PO₄³⁻ q2-3 days</strong><br><strong>Rate:</strong> Avoid rapid changes`,
+          medications: phos < 2.5 ? `<strong>Neutra-Phos:</strong> 250-500mg PO TID<br><strong>K-Phos:</strong> If potassium also low` : `None specific`
+        };
+      }
+    };
+
+    // Monitoring generators
+    const generateSodiumMonitoring = (na, severity) => {
+      const frequency = severity === 'Severe' ? 'q2h × 3, then q4h' : 
+                       severity === 'Moderate' ? 'q4-6h' : 'q12-24h';
+      return {
+        frequency,
+        parameters: ['Serum sodium', 'Serum osmolality', 'Urine osmolality', 'Urine sodium'],
+        duration: severity === 'Severe' ? '48-72 hours' : '24-48 hours',
+        warnings: ['Monitor for ODS', 'Avoid overcorrection', 'Neurological assessment']
+      };
+    };
+
+    const generatePotassiumMonitoring = (k, severity) => {
+      const frequency = k < 2.5 || k > 6.5 ? 'q1h initially, then q4h' : 
+                       k < 3.0 || k > 6.0 ? 'q2-4h' : 'q6-12h';
+      return {
+        frequency,
+        parameters: ['Serum potassium', 'ECG', 'Magnesium', 'Creatinine'],
+        duration: severity === 'Severe' ? 'Until stable + 24h' : 'Until normal + 12h',
+        warnings: ['Continuous ECG if K+ <2.5 or >6.0', 'Magnesium correction essential', 'Check for rhabdomyolysis']
+      };
+    };
+
+    const generateCalciumMonitoring = (ca, severity) => {
+      const frequency = ca < 7.0 || ca > 11.0 ? 'q4-6h' : 'q12-24h';
+      return {
+        frequency,
+        parameters: ['Serum calcium', 'Magnesium', 'Phosphate', 'PTH', 'Vitamin D'],
+        duration: severity === 'Severe' ? 'Until stable + 48h' : 'Until normal + 24h',
+        warnings: ['ECG monitoring if severe', 'QT interval assessment', 'Check for digitalis toxicity']
+      };
+    };
+
+    const generateMagnesiumMonitoring = (mg, severity) => {
+      const frequency = mg < 1.2 ? 'q4h during IV therapy' : 'q12-24h';
+      return {
+        frequency,
+        parameters: ['Serum magnesium', 'Potassium', 'Calcium', 'Deep tendon reflexes'],
+        duration: severity === 'Severe' ? '3-5 days' : 'Until normal + 24h',
+        warnings: ['Monitor reflexes during IV therapy', 'Respiratory depression risk', 'Hypotension risk']
+      };
+    };
+
+    const generatePhosphateMonitoring = (phos, severity) => {
+      const frequency = phos < 2.0 ? 'q6h during IV therapy' : 'q12-24h';
+      return {
+        frequency,
+        parameters: ['Serum phosphate', 'Calcium', 'Potassium', 'Magnesium'],
+        duration: severity === 'Severe' ? 'Until repletion + 24h' : 'Until normal + 12h',
+        warnings: ['Hypocalcemia risk', 'Hyperkalemia with KPhos', 'Renal function assessment']
+      };
+    };
+
+    // Prognosis generators
+    const generateSodiumPrognosis = (na, severity) => {
+      if (na < 125) {
+        return {
+          shortTerm: 'Guarded - High risk of seizures, cerebral edema',
+          longTerm: 'Good with appropriate correction, monitor for ODS',
+          mortality: 'Increased in severe cases without treatment'
+        };
+      } else if (na > 155) {
+        return {
+          shortTerm: 'Guarded - Risk of cerebral dehydration, seizures',
+          longTerm: 'Good with gradual correction',
+          mortality: 'Increased in elderly and comorbid patients'
+        };
+      }
+      return { shortTerm: 'Good', longTerm: 'Excellent', mortality: 'Low' };
+    };
+
+    const generatePotassiumPrognosis = (k, severity) => {
+      if (k < 2.5 || k > 6.5) {
+        return {
+          shortTerm: 'Critical - Risk of arrhythmias, cardiac arrest',
+          longTerm: 'Good with prompt treatment',
+          mortality: 'High without immediate intervention'
+        };
+      }
+      return { shortTerm: 'Good', longTerm: 'Excellent', mortality: 'Low' };
+    };
+
+    const generateCalciumPrognosis = (ca, severity) => {
+      if (ca < 7.0 || ca > 12.0) {
+        return {
+          shortTerm: 'Critical - Risk of tetany, arrhythmias, coma',
+          longTerm: 'Good with treatment of underlying cause',
+          mortality: 'Significant in severe untreated cases'
+        };
+      }
+      return { shortTerm: 'Good', longTerm: 'Excellent', mortality: 'Low' };
+    };
+
+    const generateMagnesiumPrognosis = (mg, severity) => {
+      if (mg < 1.2) {
+        return {
+          shortTerm: 'Guarded - Risk of arrhythmias, seizures',
+          longTerm: 'Good with correction',
+          mortality: 'Increased in severe deficiency'
+        };
+      }
+      return { shortTerm: 'Good', longTerm: 'Excellent', mortality: 'Low' };
+    };
+
+    const generatePhosphatePrognosis = (phos, severity) => {
+      if (phos < 2.0) {
+        return {
+          shortTerm: 'Guarded - Risk of respiratory failure, rhabdomyolysis',
+          longTerm: 'Good with treatment',
+          mortality: 'Increased in severe deficiency'
+        };
+      }
+      return { shortTerm: 'Good', longTerm: 'Excellent', mortality: 'Low' };
+    };
+
+    const renderCards = (n, k, ca, mg, phos, h) => {
+      const cards = [];
+      
+      // Generate automatic management recommendations
+      const recommendations = generateAutoManagement(n, k, ca, mg, phos, h);
+      
+      // Render enhanced auto-management section
+      if (recommendations.length > 0) {
+        els.managementContainer.style.display = 'block';
+        els.management.innerHTML = recommendations.map(rec => `
+          <div class="info-box" style="border-left: 4px solid ${
+            rec.severity === 'Severe' ? 'var(--danger)' : 
+            rec.severity === 'Moderate' ? 'var(--warning)' : 
+            'var(--success)'
+          };">
+            <div class="info-box-title">
+              <i class="fas fa-exclamation-triangle" style="color: ${
+                rec.severity === 'Severe' ? 'var(--danger)' : 
+                rec.severity === 'Moderate' ? 'var(--warning)' : 
+                'var(--success)'
+              }"></i>
+              <strong>${rec.electrolyte}: ${rec.value} (${rec.severity})</strong>
+              <span style="margin-left: auto; font-size: 0.8rem; color: var(--text-secondary);">
+                Priority: ${rec.priority.toUpperCase()}
+              </span>
+            </div>
+            
+            <div style="margin: 1rem 0;">
+              <strong>Possible Causes:</strong>
+              <ul class="info-list" style="margin-top: 0.5rem;">
+                ${rec.causes.map(cause => `<li>${cause}</li>`).join('')}
+              </ul>
+            </div>
+            
+            <div style="margin: 1rem 0;">
+              <strong>Enhanced Management Plan:</strong>
+              <div style="margin: 0.5rem 0; padding: 0.75rem; background: rgba(147, 197, 253, 0.05); border-radius: 6px; border-left: 3px solid var(--primary);">
+                <strong>Immediate Actions:</strong><br>
+                ${rec.management.immediate}
+              </div>
+              <div style="margin: 0.5rem 0; padding: 0.75rem; background: rgba(192, 132, 252, 0.05); border-radius: 6px; border-left: 3px solid var(--accent);">
+                <strong>Maintenance & Monitoring:</strong><br>
+                ${rec.management.maintenance}
+              </div>
+            </div>
+            
+            <div style="margin: 1rem 0;">
+              <strong>Medications & Dosage:</strong>
+              <div style="margin: 0.5rem 0; padding: 0.75rem; background: rgba(16, 185, 129, 0.05); border-radius: 6px; border-left: 3px solid var(--success);">
+                ${rec.management.medications}
+              </div>
+            </div>
+            
+            <div style="margin: 1rem 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div style="padding: 0.75rem; background: rgba(245, 158, 11, 0.05); border-radius: 6px;">
+                <strong style="color: var(--warning);">Monitoring Protocol:</strong><br>
+                <small>Frequency: ${rec.monitoring.frequency}</small><br>
+                <small>Duration: ${rec.monitoring.duration}</small><br>
+                <small>Params: ${rec.monitoring.parameters.join(', ')}</small>
+              </div>
+              <div style="padding: 0.75rem; background: rgba(139, 92, 246, 0.05); border-radius: 6px;">
+                <strong style="color: var(--accent);">Prognosis:</strong><br>
+                <small>Short-term: ${rec.prognosis.shortTerm}</small><br>
+                <small>Long-term: ${rec.prognosis.longTerm}</small><br>
+                <small>Mortality risk: ${rec.prognosis.mortality}</small>
+              </div>
+            </div>
+            
+            ${rec.ecgChanges ? `
+              <div style="margin: 1rem 0; padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border-radius: 6px; border-left: 3px solid var(--danger);">
+                <strong style="color: var(--danger);">ECG Changes:</strong> ${rec.ecgChanges}
+              </div>
+            ` : ''}
+            
+            ${rec.cardiacRisk ? `
+              <div style="margin: 1rem 0; padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border-radius: 6px; border-left: 3px solid var(--danger);">
+                <strong style="color: var(--danger);">Cardiac Risk:</strong> ${rec.cardiacRisk}
+              </div>
+            ` : ''}
+            
+            ${rec.refractoryNote ? `
+              <div style="margin: 1rem 0; padding: 0.75rem; background: rgba(245, 158, 11, 0.1); border-radius: 6px; border-left: 3px solid var(--warning);">
+                <strong style="color: var(--warning);">Refractory Note:</strong> ${rec.refractoryNote}
+              </div>
+            ` : ''}
+            
+            ${rec.complications ? `
+              <div style="margin: 1rem 0; padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border-radius: 6px; border-left: 3px solid var(--danger);">
+                <strong style="color: var(--danger);">Potential Complications:</strong> ${rec.complications}
+              </div>
+            ` : ''}
+          </div>
+        `).join('');
+      } else {
+        els.managementContainer.style.display = 'none';
+      }
+
+      // Render manual protocol cards (simplified for the fixed version)
+      els.cards.innerHTML = cards.map(card => `
+        <div class="protocol-card ${card.color}" id="card-${card.id}">
+          <div class="card-header" onclick="toggleCard('${card.id}')" role="button" aria-expanded="false" aria-controls="content-${card.id}" tabindex="0">
+            <div class="card-title-row"><i class="fas fa-vial"></i>${card.title}</div>
+            <i class="fas fa-chevron-down expand-icon"></i>
+          </div>
+          <div class="card-content" id="content-${card.id}" role="region" aria-hidden="true">
+            ${card.content}
+          </div>
+        </div>
+      `).join('');
+    };
+
+    // Toggle card
+    window.toggleCard = id => {
+      const c = document.getElementById(`content-${id}`);
+      const h = c.closest('.protocol-card').querySelector('.card-header');
+      const isExpanded = c.classList.contains('expanded');
+      
+      c.classList.toggle('expanded');
+      h.classList.toggle('active');
+      
+      // Update ARIA attributes
+      h.setAttribute('aria-expanded', !isExpanded);
+      c.setAttribute('aria-hidden', isExpanded);
+    };
+
+    // Enhanced update function with better visual feedback
+    const update = () => {
+      const { g, w, na, k, ca, mg, phos, h } = state;
+      const tbw = g === 'm' ? 0.6 * w : 0.5 * w;
+      const naDef = Math.round((na - 140) * tbw);
+      const kDef = k < 3.5 ? Math.ceil((4.0 - k) * 300) : 0;
+      const caDef = ca < 9.0 ? Math.ceil((9.0 - ca) * 100) : 0;
+      const mgDef = mg < 2.0 ? Math.ceil((2.0 - mg) * 50) : 0;
+      const phosDef = phos < 3.5 ? Math.ceil((3.5 - phos) * 30) : 0;
+      
+      // Calculate changes
+      const tbwChange = tbw - (previousValues.g === 'm' ? 0.6 * previousValues.w : 0.5 * previousValues.w);
+      const naDefChange = naDef - Math.round((previousValues.na - 140) * (previousValues.g === 'm' ? 0.6 * previousValues.w : 0.5 * previousValues.w));
+      const kDefChange = kDef - (previousValues.k < 3.5 ? Math.ceil((4.0 - previousValues.k) * 300) : 0);
+      const caDefChange = caDef - (previousValues.ca < 9.0 ? Math.ceil((9.0 - previousValues.ca) * 100) : 0);
+      const mgDefChange = mgDef - (previousValues.mg < 2.0 ? Math.ceil((2.0 - previousValues.mg) * 50) : 0);
+      const phosDefChange = phosDef - (previousValues.phos < 3.5 ? Math.ceil((3.5 - previousValues.phos) * 30) : 0);
+      
+      // Update change displays
+      updateChangeDisplay('tbw-change', tbwChange, 'L');
+      updateChangeDisplay('na-def-change', naDefChange, 'mEq');
+      updateChangeDisplay('k-def-change', kDefChange, 'mEq');
+      updateChangeDisplay('ca-def-change', caDefChange, 'mg');
+      updateChangeDisplay('mg-def-change', mgDefChange, 'mg');
+      updateChangeDisplay('phos-def-change', phosDefChange, 'mmol');
+      
+      // Update severity flags
+      updateSeverityFlags(na, k, ca, mg, phos);
+      
+      // Store previous values
+      Object.assign(previousValues, { g, w, na, k, ca, mg, phos, h });
+      
+      // Removed auto-release management - user controls all navigation
+
+      // Enhanced DOM updates with visual feedback
+      updateValueWithAnimation(els.wVal, w);
+      updateValueWithAnimation(els.naVal, na);
+      updateValueWithAnimation(els.kVal, k.toFixed(1));
+      updateValueWithAnimation(els.caVal, ca.toFixed(1));
+      updateValueWithAnimation(els.mgVal, mg.toFixed(1));
+      updateValueWithAnimation(els.phosVal, phos.toFixed(1));
+      
+      // Update ABG displays with enhanced feedback
+      updateValueWithAnimation(els.phVal, state.ph.toFixed(2));
+      updateValueWithAnimation(els.paco2Val, state.paco2);
+      updateValueWithAnimation(els.hco3Val, state.hco3);
+      updateValueWithAnimation(els.pao2Val, state.pao2);
+      updateValueWithAnimation(els.sao2Val, state.sao2);
+      updateValueWithAnimation(els.beVal, state.be);
+      updateValueWithAnimation(els.agVal, state.ag);
+      updateValueWithAnimation(els.fio2Val, state.fio2);
+      
+      // ABG Risk assessment
+      updateAlertWithAnimation(els.phAlert, getABGRisk(state.ph, ABG_KB.normal.pH));
+      updateAlertWithAnimation(els.paco2Alert, getABGRisk(state.paco2, ABG_KB.normal.paco2));
+      updateAlertWithAnimation(els.hco3Alert, getABGRisk(state.hco3, ABG_KB.normal.hco3));
+      updateAlertWithAnimation(els.pao2Alert, getABGRisk(state.pao2, ABG_KB.normal.pao2));
+      updateAlertWithAnimation(els.sao2Alert, getABGRisk(state.sao2, ABG_KB.normal.sao2));
+      updateAlertWithAnimation(els.beAlert, getABGRisk(state.be, ABG_KB.normal.be));
+      updateAlertWithAnimation(els.agAlert, getABGRisk(state.ag, ABG_KB.normal.ag));
+      updateAlertWithAnimation(els.fio2Alert, { 
+        level: state.fio2 === 21 ? 'Room Air' : 'Supplemental',
+        class: 'alert-normal'
+      });
+      
+      // Update ABG results
+      const abgInterpretation = interpretABG(state.ph, state.paco2, state.hco3, state.ag);
+      els.primaryDisorder.textContent = abgInterpretation.primaryDisorder;
+      els.compensation.textContent = abgInterpretation.severity !== 'None' ? abgInterpretation.severity : '—';
+      els.severity.textContent = abgInterpretation.severity;
+      els.expectedPaco2.textContent = abgInterpretation.expectedPaco2;
+      
+      // Update CLEAR Path method
+      const phRisk = getABGRisk(state.ph, ABG_KB.normal.pH);
+      const paco2Risk = getABGRisk(state.paco2, ABG_KB.normal.paco2);
+      const agRisk = getABGRisk(state.ag, ABG_KB.normal.ag);
+      
+      document.getElementById('step1-oxygenation').textContent = 
+        paco2Risk.level === 'Normal' ? `Adequate (${state.pao2} mmHg, FiO₂ ${state.fio2}%)` : `Impaired (${state.pao2} mmHg)`;
+      document.getElementById('step2-ph').textContent = 
+        phRisk.level === 'Normal' ? 'Normal (7.35-7.45)' : `Abnormal (${state.ph.toFixed(2)}, ${phRisk.level})`;
+      document.getElementById('step3-parameters').textContent = abgInterpretation.primaryDisorder;
+      document.getElementById('step4-ag').textContent = 
+        agRisk.level === 'Normal' ? 'Normal AG (8-12)' : `Elevated AG (${state.ag})`;
+      document.getElementById('step5-delta').textContent = 'Not applicable';
+
+      // Show enhanced ABG management if abnormal
+      if (abgInterpretation.primaryDisorder !== 'Normal') {
+        els.abgManagementContainer.style.display = 'block';
+        const mgmt = abgInterpretation.management;
+        
+        els.abgManagement.innerHTML = `
+          <div class="info-box" style="border-left: 4px solid var(--primary-dark);">
+            <div class="info-box-title"><strong>Clinical Principles</strong></div>
+            <div style="margin: 0.5rem 0; padding: 0.75rem; background: rgba(96, 165, 250, 0.05); border-radius: 6px;">
+              ${mgmt.principles}
+            </div>
+          </div>
+          <div class="info-box" style="border-left: 4px solid var(--accent);">
+            <div class="info-box-title"><strong>Immediate Actions Required</strong></div>
+            <div style="margin: 0.5rem 0; padding: 0.75rem; background: rgba(168, 85, 247, 0.05); border-radius: 6px;">
+              ${mgmt.immediate}
+            </div>
+          </div>
+          <div class="info-box" style="border-left: 4px solid var(--success);">
+            <div class="info-box-title"><strong>Non-Pharmacological Interventions</strong></div>
+            <ul class="info-list" style="margin: 0.5rem 0; padding: 0.75rem; background: rgba(16, 185, 129, 0.05); border-radius: 6px;">
+              ${mgmt.non_pharma.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+
+        // Show medications section
+        if (mgmt.pharma.length > 0) {
+          els.abgDrugsContainer.style.display = 'block';
+          els.abgDrugs.innerHTML = mgmt.pharma.map(med => `
+            <div class="info-box" style="border-left: 4px solid var(--warning);">
+              <div class="info-box-title"><strong>${med.name}</strong></div>
+              <div style="margin: 0.75rem 0;">
+                <div style="font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">Dosing:</div>
+                <div style="padding: 0.5rem; background: rgba(96, 165, 250, 0.05); border-radius: 4px; margin-bottom: 0.75rem;">
+                  ${med.dose}
+                </div>
+                ${med.prep ? `
+                  <div style="font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">Preparation:</div>
+                  <div style="padding: 0.5rem; background: rgba(96, 165, 250, 0.05); border-radius: 4px; margin-bottom: 0.75rem;">
+                    ${med.prep}
+                  </div>
+                ` : ''}
+                <div style="font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;">Precautions & Monitoring:</div>
+                <div style="padding: 0.5rem; background: rgba(245, 158, 11, 0.1); border-radius: 4px; margin-bottom: 0.75rem; border-left: 3px solid var(--warning);">
+                  ${med.precautions}
+                </div>
+                ${med.contraindications ? `
+                  <div style="font-weight: 600; color: var(--danger); margin-bottom: 0.5rem;">Contraindications:</div>
+                  <div style="padding: 0.5rem; background: rgba(239, 68, 68, 0.1); border-radius: 4px; border-left: 3px solid var(--danger);">
+                    ${med.contraindications}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `).join('');
+        } else {
+          els.abgDrugsContainer.style.display = 'none';
+        }
+      } else {
+        els.abgManagementContainer.style.display = 'none';
+        els.abgDrugsContainer.style.display = 'none';
+      }
+      
+      const [naText, naCls] = getNaRisk(na);
+      updateAlertWithAnimation(els.naAlert, { level: naText, class: naCls.replace('alert-', 'alert ') });
+      
+      const [kText, kCls] = getKRisk(k);
+      updateAlertWithAnimation(els.kAlert, { level: kText, class: kCls.replace('alert-', 'alert ') });
+      
+      const [caText, caCls] = getCaRisk(ca);
+      updateAlertWithAnimation(els.caAlert, { level: caText, class: caCls.replace('alert-', 'alert ') });
+      
+      const [mgText, mgCls] = getMgRisk(mg);
+      updateAlertWithAnimation(els.mgAlert, { level: mgText, class: mgCls.replace('alert-', 'alert ') });
+      
+      const [phosText, phosCls] = getPhosRisk(phos);
+      updateAlertWithAnimation(els.phosAlert, { level: phosText, class: phosCls.replace('alert-', 'alert ') });
+      
+      els.tbw.textContent = tbw.toFixed(1);
+      els.naDef.textContent = naDef.toLocaleString();
+      els.kDef.textContent = kDef;
+      els.caDef.textContent = caDef;
+      els.mgDef.textContent = mgDef;
+      els.phosDef.textContent = phosDef;
+      els.etiology.textContent = inferEtiology(na, k, ca, mg, phos, h);
+      
+      renderCards(na, k, ca, mg, phos, h);
+    };
+
+    // Enhanced update functions with animations
+    const updateValueWithAnimation = (element, value) => {
+      element.textContent = value;
+      element.classList.add('updating');
+      setTimeout(() => {
+        element.classList.remove('updating');
+      }, 300);
+    };
+
+    const updateAlertWithAnimation = (element, risk) => {
+      element.className = `alert ${risk.class}`;
+      element.textContent = risk.level;
+      element.classList.add('updating');
+      setTimeout(() => {
+        element.classList.remove('updating');
+      }, 500);
+    };
+    
+    // Update change display
+    const updateChangeDisplay = (elementId, change, unit) => {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      
+      let className = 'summary-change ';
+      let displayValue = '0';
+      
+      if (change > 0) {
+        className += 'increase';
+        displayValue = `+${change.toFixed(1)} ${unit}`;
+      } else if (change < 0) {
+        className += 'decrease';
+        displayValue = `${change.toFixed(1)} ${unit}`;
+      } else {
+        className += 'neutral';
+      }
+      
+      element.className = className;
+      element.textContent = displayValue;
+    };
+    
+    // Update severity flags
+    const updateSeverityFlags = (na, k, ca, mg, phos) => {
+      const naSeverity = getNaRisk(na)[0].toLowerCase();
+      const kSeverity = getKRisk(k)[0].toLowerCase();
+      const caSeverity = getCaRisk(ca)[0].toLowerCase();
+      const mgSeverity = getMgRisk(mg)[0].toLowerCase();
+      const phosSeverity = getPhosRisk(phos)[0].toLowerCase();
+      
+      // Update summary item severity classes
+      updateSummaryItemSeverity('summary-tbw', 'normal');
+      updateSummaryItemSeverity('summary-na-def', naSeverity);
+      updateSummaryItemSeverity('summary-k-def', kSeverity);
+      updateSummaryItemSeverity('summary-ca-def', caSeverity);
+      updateSummaryItemSeverity('summary-mg-def', mgSeverity);
+      updateSummaryItemSeverity('summary-phos-def', phosSeverity);
+      updateSummaryItemSeverity('summary-etiology', 'normal');
+      
+      // Update value colors
+      updateValueAbnormality('tbw', false);
+      updateValueAbnormality('na-def', naSeverity !== 'normal');
+      updateValueAbnormality('k-def', kSeverity !== 'normal');
+      updateValueAbnormality('ca-def', caSeverity !== 'normal');
+      updateValueAbnormality('mg-def', mgSeverity !== 'normal');
+      updateValueAbnormality('phos-def', phosSeverity !== 'normal');
+    };
+    
+    // Update summary item severity
+    const updateSummaryItemSeverity = (itemId, severity) => {
+      const element = document.getElementById(itemId);
+      if (!element) return;
+      
+      element.className = 'summary-item';
+      element.classList.add(`severity-${severity}`);
+    };
+    
+    // Update value abnormality
+    const updateValueAbnormality = (valueId, isAbnormal) => {
+      const element = document.getElementById(valueId);
+      if (!element) return;
+      
+      const valueSpan = element.querySelector('.summary-value');
+      if (!valueSpan) return;
+      
+      if (isAbnormal) {
+        valueSpan.classList.add('abnormal');
+      } else {
+        valueSpan.classList.remove('abnormal');
+      }
+    };
+    
+    // User-controlled management access (no automatic movement)
+    const userControlledManagement = (na, k, ca, mg, phos) => {
+      const naSeverity = getNaRisk(na)[0];
+      const kSeverity = getKRisk(k)[0];
+      const caSeverity = getCaRisk(ca)[0];
+      const mgSeverity = getMgRisk(mg)[0];
+      const phosSeverity = getPhosRisk(phos)[0];
+      
+      // Check for any severe condition
+      const hasSevere = [
+        naSeverity, kSeverity, caSeverity, mgSeverity, phosSeverity
+      ].some(severity => severity === 'Severe');
+      
+      // Only show management section - user decides when to view it
+      if (hasSevere && els.managementContainer) {
+        els.managementContainer.style.display = 'block';
+        // No automatic scrolling or animations - user controls all navigation
+      }
+    };
+    
+    // Add pulse highlight animation (removed automatic triggering)
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Removed automatic pulse-highlight animation */
+    `;
+    document.head.appendChild(style);
+
+    // Keyboard navigation support
+    document.addEventListener('keydown', e => {
+      if (e.target.matches('button, [tabindex="0"]')) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.target.click();
+        }
+      }
+      
+      // Arrow key navigation for radio groups
+      if (e.target.matches('[role="radio"]')) {
+        const group = e.target.closest('[role="group"]');
+        if (group && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+          const radios = group.querySelectorAll('[role="radio"]');
+          const currentIndex = Array.from(radios).indexOf(e.target);
+          let nextIndex;
+          
+          if (e.key === 'ArrowRight') {
+            nextIndex = (currentIndex + 1) % radios.length;
+          } else {
+            nextIndex = (currentIndex - 1 + radios.length) % radios.length;
+          }
+          
+          radios[nextIndex].click();
+          radios[nextIndex].focus();
+        }
+      }
+    });
+    
+    // Enhanced event delegation
+    document.addEventListener('click', e => {
+      if (e.target.matches('[data-gender]')) {
+        document.querySelectorAll('[data-gender]').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-checked', 'false');
+        });
+        e.target.classList.add('active');
+        e.target.setAttribute('aria-checked', 'true');
+        state.g = e.target.dataset.gender === 'male' ? 'm' : 'f';
+        update();
+      } else if (e.target.matches('[data-hydration]')) {
+        document.querySelectorAll('[data-hydration]').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-checked', 'false');
+        });
+        e.target.classList.add('active');
+        e.target.setAttribute('aria-checked', 'true');
+        state.h = e.target.dataset.hydration;
+        update();
+      } else if (e.target.matches('.preset-btn')) {
+        const p = e.target.dataset.preset;
+        if (p === 'siadh') { state.na = 122; state.k = 3.2; state.ca = 8.8; state.mg = 1.8; state.phos = 2.8; state.creat = 0.8; state.bun = 12; state.h = 'eu'; }
+        else if (p === 'dka') { state.na = 128; state.k = 2.8; state.ca = 9.2; state.mg = 1.5; state.phos = 2.2; state.creat = 1.1; state.bun = 18; state.h = 'eu'; }
+        else if (p === 'hf') { state.na = 125; state.k = 4.2; state.ca = 9.0; state.mg = 2.0; state.phos = 3.5; state.creat = 1.8; state.bun = 35; state.h = 'hyper'; }
+        else if (p === 'cirrhosis') { state.na = 122; state.k = 3.8; state.ca = 8.5; state.mg = 1.7; state.phos = 2.5; state.creat = 1.4; state.bun = 28; state.h = 'hyper'; }
+        else if (p === 'hks') { state.na = 142; state.k = 6.8; state.ca = 9.0; state.mg = 2.0; state.phos = 3.5; state.creat = 3.2; state.bun = 65; state.h = 'eu'; }
+        else if (p === 'di') { state.na = 158; state.k = 4.0; state.ca = 9.0; state.mg = 2.0; state.phos = 3.5; state.creat = 0.9; state.bun = 8; state.h = 'hypo'; }
+        else if (p === 'hyperca') { state.na = 140; state.k = 4.0; state.ca = 11.5; state.mg = 2.0; state.phos = 2.8; state.creat = 1.6; state.bun = 22; state.h = 'eu'; }
+        else if (p === 'normal') { state.na = 140; state.k = 4.0; state.ca = 9.0; state.mg = 2.0; state.phos = 3.5; state.creat = 1.0; state.bun = 15; state.h = 'eu'; }
+        
+        // Update slider values with enhanced feedback
+        updateSliderValues();
+        update();
+      }
+    });
+
+    // Enhanced slider update function
+    const updateSliderValues = () => {
+      document.getElementById('na').value = state.na;
+      document.getElementById('k').value = state.k * 10;
+      document.getElementById('ca').value = state.ca * 10;
+      document.getElementById('mg').value = state.mg * 10;
+      document.getElementById('phos').value = state.phos * 10;
+      document.querySelector(`[data-hydration="${state.h}"]`).click();
+    };
+
+    // Update ARIA values for range inputs
+    const updateSliderAria = (slider) => {
+      const value = slider.value;
+      const min = slider.min;
+      const max = slider.max;
+      slider.setAttribute('aria-valuenow', value);
+      
+      // Announce value changes for screen readers
+      const announcement = document.createElement('div');
+      announcement.setAttribute('aria-live', 'polite');
+      announcement.className = 'sr-only';
+      announcement.textContent = `Value changed to ${value}`;
+      document.body.appendChild(announcement);
+      setTimeout(() => document.body.removeChild(announcement), 1000);
+    };
+    
+    // FIXED: Enhanced slider event handlers with immediate value updates
+    document.getElementById('inputs').addEventListener('input', e => {
+      const target = e.target;
+      
+      if (target.id === 'weight') {
+        state.w = +target.value;
+        els.wVal.textContent = target.value;
+      } else if (target.id === 'na') {
+        state.na = +target.value;
+        els.naVal.textContent = target.value;
+        updateSliderAria(target);
+      } else if (target.id === 'k') {
+        state.k = +target.value / 10;
+        els.kVal.textContent = (target.value / 10).toFixed(1);
+        updateSliderAria(target);
+      } else if (target.id === 'ca') {
+        state.ca = +target.value / 10;
+        els.caVal.textContent = (target.value / 10).toFixed(1);
+        updateSliderAria(target);
+      } else if (target.id === 'mg') {
+        state.mg = +target.value / 10;
+        els.mgVal.textContent = (target.value / 10).toFixed(1);
+        updateSliderAria(target);
+      } else if (target.id === 'phos') {
+        state.phos = +target.value / 10;
+        els.phosVal.textContent = (target.value / 10).toFixed(1);
+        updateSliderAria(target);
+      }
+      
+      // Add visual feedback
+      const valueElement = document.getElementById(`${target.id}-val`);
+      if (valueElement) {
+        valueElement.classList.add('updating');
+        setTimeout(() => valueElement.classList.remove('updating'), 300);
+      }
+      
+      // Add alert feedback if it exists
+      const alertElement = document.getElementById(`${target.id}-alert`);
+      if (alertElement) {
+        alertElement.classList.add('updating');
+        setTimeout(() => alertElement.classList.remove('updating'), 500);
+      }
+      
+      // Update full state
+      update();
+    });
+
+    // FIXED: Enhanced ABG sliders with immediate value updates and bug fixes
+    document.getElementById('abg-inputs').addEventListener('input', e => {
+      const target = e.target;
+      
+      if (target.id === 'ph') {
+        state.ph = +target.value / 100;
+        els.phVal.textContent = (target.value / 100).toFixed(2);
+      } else if (target.id === 'paco2') {
+        state.paco2 = +target.value;
+        els.paco2Val.textContent = target.value;
+      } else if (target.id === 'hco3') {
+        state.hco3 = +target.value;
+        els.hco3Val.textContent = target.value;
+      } else if (target.id === 'pao2') {
+        state.pao2 = +target.value; // FIXED: Was incorrectly setting state.paco2
+        els.pao2Val.textContent = target.value;
+      } else if (target.id === 'sao2') {
+        state.sao2 = +target.value;
+        els.sao2Val.textContent = target.value;
+      } else if (target.id === 'be') {
+        state.be = +target.value;
+        els.beVal.textContent = target.value;
+      } else if (target.id === 'ag') {
+        state.ag = +target.value;
+        els.agVal.textContent = target.value;
+      } else if (target.id === 'fio2') {
+        state.fio2 = +target.value;
+        els.fio2Val.textContent = target.value;
+      }
+      
+      // Add visual feedback
+      const valueElement = document.getElementById(`${target.id}-val`);
+      if (valueElement) {
+        valueElement.classList.add('updating');
+        setTimeout(() => valueElement.classList.remove('updating'), 300);
+      }
+      
+      // Add alert feedback if it exists
+      const alertElement = document.getElementById(`${target.id}-alert`);
+      if (alertElement) {
+        alertElement.classList.add('updating');
+        setTimeout(() => alertElement.classList.remove('updating'), 500);
+      }
+      
+      // Update full state
+      update();
+    });
+
+    // Theme toggle - keep dark mode active
+    els.theme.addEventListener('click', () => {
+      // Keep dark mode as default
+      document.body.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+      
+      // Update icon to show dark mode
+      const icon = els.theme.querySelector('.toggle-handle');
+      icon.textContent = '☀️';
+      
+      // Update ARIA state
+      els.theme.setAttribute('aria-pressed', 'true');
+    });
+
+    // Language selector functionality
+    const langBtn = document.getElementById('lang-btn');
+    const langMenu = document.getElementById('lang-menu');
+    
+    langBtn.addEventListener('click', () => {
+      const isExpanded = langBtn.getAttribute('aria-expanded') === 'true';
+      langBtn.setAttribute('aria-expanded', !isExpanded);
+      langMenu.setAttribute('aria-hidden', isExpanded);
+    });
+    
+    // Language selection
+    document.querySelectorAll('[data-lang]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const lang = e.target.getAttribute('data-lang');
+        setLanguage(lang);
+        
+        // Close menu
+        langBtn.setAttribute('aria-expanded', 'false');
+        langMenu.setAttribute('aria-hidden', 'true');
+      });
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#language-selector')) {
+        langBtn.setAttribute('aria-expanded', 'false');
+        langMenu.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    // Initialize the application
+    update();
+  </script>
+</body>
+</html>
